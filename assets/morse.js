@@ -250,6 +250,82 @@
     }
   }
 
+  /* ---------- Name in Morse code (cards + PNG download) ---------- */
+  function initNameTool(root) {
+    var L = window.ML_I18N || {};
+    var input = root.querySelector("#n-input"), out = root.querySelector("#n-out"), line = root.querySelector("#n-line");
+    function letters() {
+      return Array.from(input.value.toUpperCase().replace(/ẞ/g, "ß")).filter(function (c) { return c === " " || CODE[c] || FOLD[c]; });
+    }
+    function code(c) { return CODE[c] || CODE[FOLD[c]] || ""; }
+    function render() {
+      var ls = letters();
+      out.innerHTML = "";
+      ls.forEach(function (c) {
+        var d = document.createElement("div");
+        d.className = c === " " ? "ncard gap" : "ncard";
+        if (c !== " ") {
+          var b = document.createElement("b"); b.textContent = c;
+          var s = document.createElement("span"); s.textContent = code(c).replace(/\./g, "·").replace(/-/g, "–");
+          d.appendChild(b); d.appendChild(s);
+        }
+        out.appendChild(d);
+      });
+      line.textContent = toMorse(input.value);
+    }
+    input.addEventListener("input", render);
+    root.querySelector("[data-act=n-play]").addEventListener("click", function () {
+      var m = toMorse(input.value); if (!m) { toast(L.empty || "Type something first"); return; }
+      stopAll(); var b = this; b.setAttribute("data-playing", "");
+      var d = playSound(m, 15, 600); timers.push(setTimeout(function () { b.removeAttribute("data-playing"); }, d));
+    });
+    root.querySelector("[data-act=n-copy]").addEventListener("click", function () {
+      var m = toMorse(input.value); if (!m) { toast(L.empty || "Type something first"); return; }
+      navigator.clipboard.writeText(m).then(function () { toast(L.copied || "Copied"); });
+    });
+    root.querySelector("[data-act=n-png]").addEventListener("click", function () {
+      var ls = letters().filter(function (c, i, a) { return c !== " " || (i && a[i - 1] !== " "); });
+      if (!ls.join("").trim()) { toast(L.empty || "Type something first"); return; }
+      var dot = 18, dash = 50, gap = 12, pad = 60, h = 420;
+      var widths = ls.map(function (c) {
+        if (c === " ") return 60;
+        var total = 0;
+        Array.from(code(c)).forEach(function (s, k) { total += (s === "." ? dot : dash) + (k ? gap : 0); });
+        return Math.max(110, total + 44);
+      });
+      var inner = widths.reduce(function (a, b) { return a + b; }, 0), w = Math.max(600, inner + pad * 2);
+      var cv = document.createElement("canvas"); cv.width = w; cv.height = h;
+      var g = cv.getContext("2d");
+      var grad = g.createLinearGradient(0, 0, 0, h); grad.addColorStop(0, "#0f2a3c"); grad.addColorStop(1, "#081722");
+      g.fillStyle = grad; g.fillRect(0, 0, w, h);
+      var left = (w - inner) / 2;
+      ls.forEach(function (c, i) {
+        var cx = left + widths[i] / 2; left += widths[i];
+        if (c === " ") return;
+        g.fillStyle = "#eef3f6"; g.font = "bold 76px -apple-system,Segoe UI,Roboto,Arial,sans-serif"; g.textAlign = "center";
+        g.fillText(c, cx, 170);
+        var sym = code(c), total = 0;
+        Array.from(sym).forEach(function (s, k) { total += (s === "." ? dot : dash) + (k ? gap : 0); });
+        var x = cx - total / 2;
+        g.fillStyle = "#ffc96b";
+        Array.from(sym).forEach(function (s) {
+          if (s === ".") { g.beginPath(); g.arc(x + dot / 2, 250, dot / 2, 0, Math.PI * 2); g.fill(); x += dot + gap; }
+          else { var r = 9; g.beginPath(); g.moveTo(x + r, 241); g.arcTo(x + dash, 241, x + dash, 259, r); g.arcTo(x + dash, 259, x, 259, r); g.arcTo(x, 259, x, 241, r); g.arcTo(x, 241, x + dash, 241, r); g.fill(); x += dash + gap; }
+        });
+      });
+      g.fillStyle = "rgba(255,201,107,.55)"; g.font = "600 22px -apple-system,Segoe UI,Roboto,Arial,sans-serif"; g.textAlign = "center";
+      g.fillText("Morse Lux", w / 2, h - 36);
+      cv.toBlob(function (blob) {
+        var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+        var fname = input.value.trim().replace(/[äÄ]/g, "ae").replace(/[öÖ]/g, "oe").replace(/[üÜ]/g, "ue").replace(/ß/g, "ss")
+          .normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w-]+/g, "_");
+        a.download = (fname || "morse") + "-morse.png";
+        document.body.appendChild(a); a.click(); a.remove();
+      }, "image/png");
+    });
+    render();
+  }
+
   /* ---------- Play buttons in tables (data-morse) ---------- */
   function initPlayButtons() {
     document.addEventListener("click", function (e) {
@@ -301,9 +377,9 @@
       if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       if (a.target && a.target !== "_self") return;
       var href = a.getAttribute("href");
-      if (!href || href.charAt(0) === "#" || /^(mailto:|tel:)/.test(href)) return;
+      if (!href || href.charAt(0) === "#" || /^(mailto:|tel:|blob:|data:)/.test(href) || a.hasAttribute("download")) return;
       var dest = new URL(href, location.href);
-      if (dest.origin !== location.origin) return;
+      if (dest.origin !== location.origin || /\.(pdf|png|wav|xml|txt)$/i.test(dest.pathname)) return;
       if (dest.pathname === location.pathname && dest.hash) return;
       e.preventDefault();
       document.documentElement.classList.add("leaving"); /* hide the old page at once */
@@ -320,6 +396,8 @@
     initTopLinks();
     var tr = document.getElementById("translator");
     if (tr) initTranslator(tr);
+    var nt = document.getElementById("nametool");
+    if (nt) initNameTool(nt);
     initPlayButtons();
     initLangHint();
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") stopAll(); });
