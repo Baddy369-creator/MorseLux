@@ -27,6 +27,21 @@
     }).filter(Boolean).join(" / ");
   }
 
+  /* How Morse is shown: round dot and dash on one line, like in the app. Copies stay as .- */
+  function display(m) { return m.replace(/[.·∙⋅*]/g, "•").replace(/[-–—―_]/g, "−"); }
+  function ascii(m) { return normalizeMorse(m).replace(/•/g, "."); }
+  function shapes(m) {
+    var items = [];
+    ascii(m).trim().split("/").forEach(function (word, wi) {
+      if (wi) items.push('<i class="mw">/</i>');
+      word.trim().split(/\s+/).forEach(function (letter) {
+        var sig = Array.from(letter).map(function (c) { return c === "." ? '<i class="md"></i>' : c === "-" ? '<i class="mh"></i>' : ""; }).join("");
+        if (sig) items.push('<span class="ml">' + sig + "</span>");
+      });
+    });
+    return '<span class="m" aria-hidden="true">' + items.join("") + "</span>";
+  }
+
   function normalizeMorse(s) {
     return s.replace(/[·•∙⋅*]/g, ".").replace(/[−–—―_]/g, "-").replace(/\|/g, "/");
   }
@@ -165,9 +180,12 @@
       if (from === "text") {
         /* Morse pasted into the text box is moved to the Morse box and decoded. */
         if (pasted && looksLikeMorse(textEl.value) && /[.\-·•−–—―_]/.test(textEl.value)) {
-          morseEl.value = normalizeMorse(textEl.value).trim(); textEl.value = fromMorse(textEl.value);
-        } else morseEl.value = toMorse(textEl.value);
+          morseEl.value = display(normalizeMorse(textEl.value).trim()); textEl.value = fromMorse(textEl.value);
+        } else morseEl.value = display(toMorse(textEl.value));
       } else {
+        /* typed . and - are shown as • and −; one character each, so the cursor stays put */
+        var pos = morseEl.selectionStart, shown = display(morseEl.value);
+        if (shown !== morseEl.value) { morseEl.value = shown; try { morseEl.setSelectionRange(pos, pos); } catch (e) {} }
         textEl.value = fromMorse(morseEl.value);
       }
       lock = false;
@@ -196,7 +214,7 @@
     root.querySelector("[data-act=stop]").addEventListener("click", stopAll);
     root.querySelector("[data-act=copy]").addEventListener("click", function () {
       if (!morseEl.value.trim()) { toast(L.empty || "Type something first"); return; }
-      navigator.clipboard.writeText(morseEl.value).then(function () { toast(L.copied || "Copied"); });
+      navigator.clipboard.writeText(ascii(morseEl.value)).then(function () { toast(L.copied || "Copied"); });
     });
     root.querySelector("[data-act=wav]").addEventListener("click", function () {
       var m = morseEl.value.trim();
@@ -231,11 +249,11 @@
       var secret = decodeShare(m[1]);
       if (secret) {
         var box = document.getElementById("secret");
-        morseEl.value = toMorse(secret);
+        morseEl.value = display(toMorse(secret));
         textEl.value = "";
         if (box) {
           box.hidden = false;
-          box.querySelector("[data-secret-morse]").textContent = toMorse(secret);
+          box.querySelector("[data-secret-morse]").innerHTML = shapes(toMorse(secret));
           box.querySelector("[data-act=reveal]").addEventListener("click", function () {
             textEl.value = secret;
             box.querySelector("[data-secret-answer]").textContent = secret;
@@ -266,12 +284,12 @@
         d.className = c === " " ? "ncard gap" : "ncard";
         if (c !== " ") {
           var b = document.createElement("b"); b.textContent = c;
-          var s = document.createElement("span"); s.textContent = code(c).replace(/\./g, "·").replace(/-/g, "–");
+          var s = document.createElement("span"); s.innerHTML = shapes(code(c));
           d.appendChild(b); d.appendChild(s);
         }
         out.appendChild(d);
       });
-      line.textContent = toMorse(input.value);
+      line.innerHTML = shapes(toMorse(input.value));
     }
     input.addEventListener("input", render);
     root.querySelector("[data-act=n-play]").addEventListener("click", function () {

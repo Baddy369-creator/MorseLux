@@ -165,3 +165,13 @@ footer.site h4{color:var(--text);margin:0 0 6px;font-size:14px}
 .phrase b{font-size:17px}
 .phrase code{font:18px/1.4 var(--mono);color:var(--amber);letter-spacing:.05em;word-break:break-word}
 @media (max-width:640px){.phrase{grid-template-columns:1fr auto}.phrase code{grid-column:1/-1;grid-row:2}}
+
+/* Morse drawn like in the app: round dot and rounded dash, centred on one line */
+.m{display:inline-flex;align-items:center;flex-wrap:wrap;column-gap:.6em;row-gap:.35em;vertical-align:middle;line-height:1}
+.ml{display:inline-flex;align-items:center;gap:.2em;white-space:nowrap}
+.m i{display:inline-block;flex:none}
+.md{width:.42em;height:.42em;border-radius:50%;background:currentColor}
+.mh{width:1.2em;height:.42em;border-radius:.21em;background:currentColor}
+.mw{font-style:normal;opacity:.55}
+.sym code .m{font-size:15px}
+.big-morse{letter-spacing:0}
