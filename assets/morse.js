@@ -423,5 +423,7 @@
     if (flash) flash.addEventListener("click", stopAll);
   });
 
-  window.MorseLux = { toMorse: toMorse, fromMorse: fromMorse, CODE: CODE };
+  window.MorseLux = { toMorse: toMorse, fromMorse: fromMorse, CODE: CODE, DECODE: DECODE, shapes: shapes, display: display,
+    playSound: playSound, stopAll: stopAll, toast: toast, audio: audio, timeline: timeline,
+    later: function (fn, ms) { timers.push(setTimeout(fn, ms)); } };
 })();
