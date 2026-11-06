@@ -10,7 +10,12 @@
 
   function Decoder(sampleRate, decode) {
     this.sr = sampleRate;
-    this.decodeTable = decode;
+    /* prosigns that have no letter of their own are shown in angle brackets instead of "#" */
+    var table = {}, k;
+    for (k in decode) table[k] = decode[k];
+    var extra = { "...-.-": "<SK>", "...-.": "<SN>", "........": "<HH>", "-.-.-": "<KA>", ".-...": "<AS>", "-.--.": "<KN>", ".-.-.": "<AR>", "-...-": "<BT>" };
+    for (k in extra) if (!table[k]) table[k] = extra[k];
+    this.decodeTable = table;
     this.hop = Math.max(64, Math.round(sampleRate * 0.004));      /* one step = 4 ms */
     this.win = Math.round(sampleRate * 0.012);                     /* tone filter looks at 12 ms */
     this.freqs = [];
@@ -194,6 +199,18 @@
     if (ms <= 0) return;
     if (!this.on && !this.events.length) return;                /* silence before the first signal */
     this.events.push([this.on ? 1 : 0, ms]);
+    /* a long pause (a new transmission may follow, maybe faster or slower): freeze what was decoded so far,
+       so a later change of speed cannot rewrite it */
+    if (!this.on && this.checked) {
+      var marks = 0;
+      for (var m = 0; m < this.events.length; m++) if (this.events[m][0]) marks++;
+      if (marks >= 20 && ms >= Math.max(1000, (this.dotMs || 80) * 10)) {
+        var all = this.events.splice(0, this.events.length), rr = this.decodeEvents(all.slice(0, -1), ms, true);
+        this.committed += rr.text; this.committedMorse += rr.morse;
+        if (this.committed && this.committed.slice(-1) !== " ") { this.committed += " "; this.committedMorse += "/ "; }
+        return;
+      }
+    }
     if (this.events.length > 260) {                              /* keep the text, forget old timing */
       var dot = this.estimate(this.events).dot, cut = -1;
       for (var i = 120; i < this.events.length - 20; i++) if (!this.events[i][0] && this.events[i][1] > dot * 2.5) { cut = i; break; }
@@ -366,14 +383,14 @@
   function makeTap(ac, onData) {
     if (ac.audioWorklet && window.AudioWorkletNode) {
       if (!workletReady) {
-        var code = "class T extends AudioWorkletProcessor{constructor(){super();this.b=new Float32Array(2048);this.i=0}process(inp){var c=inp[0]&&inp[0][0];if(c){for(var j=0;j<c.length;j++){this.b[this.i++]=c[j];if(this.i===2048){this.port.postMessage(this.b.slice(0));this.i=0}}}return true}}registerProcessor('ml-tap',T);";
+        var code = "class T extends AudioWorkletProcessor{constructor(){super();this.b=new Float32Array(2048);this.i=0;this.stop=false;this.port.onmessage=e=>{if(e.data==='stop')this.stop=true}}process(inp){if(this.stop)return false;var c=inp[0]&&inp[0][0];if(c){for(var j=0;j<c.length;j++){this.b[this.i++]=c[j];if(this.i===2048){this.port.postMessage(this.b.slice(0));this.i=0}}}return true}}registerProcessor('ml-tap',T);";
         var url = URL.createObjectURL(new Blob([code], { type: "application/javascript" }));
         workletReady = ac.audioWorklet.addModule(url);
       }
       return workletReady.then(function () {
         var n = new AudioWorkletNode(ac, "ml-tap", { numberOfInputs: 1, numberOfOutputs: 1, channelCount: 1, channelCountMode: "explicit" });
         n.port.onmessage = function (e) { onData(e.data); };
-        n.stopTap = function () { n.port.onmessage = null; };
+        n.stopTap = function () { n.port.onmessage = null; try { n.port.postMessage("stop"); } catch (e) {} };   /* the processor ends itself */
         return n;
       }).catch(function () { workletReady = null; return scriptTap(ac, onData); });
     }
@@ -396,7 +413,7 @@
     var micBtn = $("[data-act=d-mic]", box), demoBtn = $("[data-act=d-demo]", box), fileIn = $("#d-file", box);
     var FREE_MS = 30000, LIMIT_KEY = "ml-mic-v1";
     var job = 0, mode = "", dec = null, ac = null, tap = null, stream = null, src = null, raf = 0;
-    var history = [], lastShown = "", lastUi = 0, lastTape = 0, micStart = 0;
+    var history = [], lastShown = "", lastUi = 0, lastTape = 0, micStart = 0, stoppedAt = 0;
     var tg = tape.getContext("2d");
     if (isIOS) { var hint = $("[data-ios-hint]", box); if (hint) hint.hidden = false; }
 
@@ -404,7 +421,7 @@
     function today() { var d = new Date(); return d.getFullYear() + "-" + (d.getMonth() + 1) + "-" + d.getDate(); }
     function usedMs() { var u = store(LIMIT_KEY); return u && u.day === today() ? u.ms : 0; }
     function addUsed(ms) { store(LIMIT_KEY, { day: today(), ms: Math.min(FREE_MS, usedMs() + ms) }); }
-    function leftMs() { return Math.max(0, FREE_MS - usedMs() - (mode === "mic" ? Date.now() - micStart : 0)); }
+    function leftMs() { return Math.max(0, FREE_MS - usedMs() - (mode === "mic" && micStart ? Date.now() - micStart : 0)); }
     function showFree() {
       var left = Math.ceil(leftMs() / 1000);
       freeInfo.textContent = (D.freeLeft || "Free microphone time today: {s} s").replace("{s}", left);
@@ -488,6 +505,13 @@
         return n;
       });
     }
+    /* phones: while listening, the other buttons are hidden (CSS) and the page scrolls so that the
+       Stop button, the signal and the text are all on screen at once */
+    function bringIntoView() {
+      if (window.innerWidth > 640) return;
+      var head = document.querySelector("header"), h = head ? head.getBoundingClientRect().height : 0;
+      window.scrollTo({ top: Math.max(0, micBtn.getBoundingClientRect().top + window.scrollY - h - 10), behavior: "smooth" });
+    }
     function limitReached() {
       stop(D.limitStatus || "Your free microphone time for today is used up.");
       limitBox.hidden = false;
@@ -496,7 +520,8 @@
 
     micBtn.addEventListener("click", function () {
       if (mode === "asking") return;                             /* a second tap while the permission is asked is ignored */
-      if (mode === "mic") { stop(); return; }
+      if (mode === "mic") { stop(); stoppedAt = Date.now(); return; }
+      if (Date.now() - stoppedAt < 700) return;                  /* a double tap on "Stop" must not start it again */
       if (leftMs() <= 0) { teardown(); limitBox.hidden = false; setStatus(D.limitStatus || "Your free microphone time for today is used up.", "err"); return; }
       if (!window.isSecureContext) { setStatus(D.needHttps || "The microphone only works on a secure (https) page.", "err"); return; }
       if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) { setStatus(D.noMic || "This browser cannot use the microphone.", "err"); return; }
@@ -512,6 +537,7 @@
           if (!n || my !== job) return;
           ac.createMediaStreamSource(s).connect(n);
           micStart = Date.now(); showFree(); micBtn.textContent = D.stop || "■ Stop";
+          bringIntoView();
           setStatus(D.listening || "Listening… hold the device close to the sound.", "live");
         });
       }).catch(function (err) {
@@ -530,6 +556,7 @@
       audioSession("playback");
       demoBtn.textContent = D.stop || "■ Stop";
       setStatus(D.demoPlaying || "Playing an example and decoding it…", "live");
+      bringIntoView();
       startDecoding(my).then(function (n) {
         if (!n || my !== job) return;
         var samples = synth(ML.toMorse(D.demoText || "CQ CQ DE MORSE LUX"), 18, 640, ac.sampleRate, 0.06);
@@ -609,7 +636,9 @@
       var v = st.stats[c];
       if (v.length === 2 && v[1] > 1 && !Array.isArray(v[0])) st.stats[c] = Array.from({ length: Math.min(v[1], WINDOW) }, function (_, i) { return i < Math.round(v[0] / v[1] * Math.min(v[1], WINDOW)) ? 1 : 0; });
     });
-    var q = null, session = { right: 0, total: 0, wrongs: {} }, ownTimers = [];
+    var q = null, ownTimers = [];
+    /* a round that was started is kept, so a reload (iPhone switching apps) does not lose it */
+    var session = st.round && st.round.total > 0 && st.round.total < ROUND ? st.round : { right: 0, total: 0, wrongs: {} };
     var keys = $("#k-keys", box), fb = $("#k-feedback", box), lvl = $("#k-level", box), learned = $("#k-learned", box);
     var bar = $("#k-progress i", box), count = $("#k-count", box), playBtn = $("[data-act=k-play]", box);
     var speedSel = $("#k-speed", box), toneSel = $("#k-tone", box), modeSel = $("#k-mode", box);
@@ -618,7 +647,7 @@
 
     function chars() { return KOCH.slice(0, st.level).split(""); }
     function code(c) { return ML.CODE[c]; }
-    function save() { store(KEY, st); }
+    function save() { st.round = session; store(KEY, st); }
     function acc(c) { var a = st.stats[c] || []; return a.length ? a.reduce(function (x, y) { return x + y; }, 0) / a.length : -1; }
     function record(c, val) { var a = st.stats[c] || []; a.push(val); while (a.length > WINDOW) a.shift(); st.stats[c] = a; }
     function later(fn, ms) { ownTimers.push(setTimeout(fn, ms)); }
@@ -677,7 +706,8 @@
     function renderSlots() {
       if (!q || q.list.length < 2) { slots.hidden = true; return; }
       slots.hidden = false;
-      slots.innerHTML = q.list.map(function (c, i) { return "<span>" + (q.got[i] || "·") + "</span>"; }).join("");
+      slots.innerHTML = q.list.map(function (c, i) { return "<span>" + (q.got[i] || "·") + "</span>"; }).join("") +
+        (!q.done && q.got.length ? '<button type="button" class="btn k-back" data-act="k-back" aria-label="' + (T.back || "Undo") + '">⌫</button>' : "");
     }
     function answer(c) {
       if (!q || q.done || session.total >= ROUND) return;
@@ -690,8 +720,8 @@
         record(want, val); session.total++; session.right += val;
         if (!ok) { allOk = false; session.wrongs[want] = (session.wrongs[want] || 0) + 1; }
         mark(got, ok ? "ok" : "no"); if (!ok) mark(want, "ok");
-        html.push(ok ? "✓ <b>" + want + "</b> " + ML.shapes(code(want))
-          : "✗ " + (T.itWas || "It was") + " <b>" + want + "</b> " + ML.shapes(code(want)) + " · " + (T.youChose || "you chose") + " <b>" + got + "</b> " + ML.shapes(code(got)));
+        html.push(ok ? '<span class="k-line ok">✓ <b>' + want + "</b> " + ML.shapes(code(want)) + "</span>"
+          : '<span class="k-line no">✗ ' + (T.itWas || "It was") + " <b>" + want + "</b> " + ML.shapes(code(want)) + " · " + (T.youChose || "you chose") + " <b>" + got + "</b> " + ML.shapes(code(got)) + "</span>");
       });
       save();
       if (allOk) {
@@ -699,7 +729,7 @@
         fb.innerHTML = html.join("<br>") + (half ? ' <span class="k-half">' + (T.half || "(heard twice: half a point)") + "</span>" : "");
         later(function () { next(); }, q.list.length > 1 ? 900 : 650);
       } else {
-        fb.className = "k-feedback no"; fb.innerHTML = html.join("<br>");
+        fb.className = "k-feedback"; fb.innerHTML = html.join("<br>");
         /* hear the difference: first the right character, then the one you chose */
         var wrong = q.list.map(function (w, i) { return [w, q.got[i]]; }).filter(function (p) { return p[0] !== p[1]; })[0];
         playSeq(q.list.length > 1 ? q.list : []);
@@ -709,8 +739,9 @@
       }
       render();
     }
-    function intro(list, title, autoplay) {
+    function intro(list, title, autoplay, noStart) {
       introBox.hidden = false;
+      $("[data-act=k-intro-start]", introBox).hidden = !!noStart;  /* after a round the main button already says "Next round" */
       introBox.setAttribute("data-chars", list.join(""));
       $("[data-intro-title]", introBox).textContent = title;
       $("[data-intro-list]", introBox).innerHTML = list.map(function (c) {
@@ -728,10 +759,12 @@
       else if (st.level >= KOCH.length && a >= 0.9) msg = T.allDone || "You know all 40 characters!";
       else msg = (T.again || "Reach 90 % to unlock the next character. Practice:") + " " + Object.keys(session.wrongs).map(function (c) { return "<b>" + c + "</b>"; }).join(" ");
       $("[data-sum-msg]", summary).innerHTML = msg;
-      session = { right: 0, total: 0, wrongs: {} }; q = null;
+      session = { right: 0, total: 0, wrongs: {} }; q = null; save();
       playBtn.textContent = "▶ " + (T.startRound || "Next round");
       renderKeys(); render(); renderSlots();
-      if (up) intro([chars()[st.level - 1]], T.newChar || "New character", true);
+      if (up) intro([chars()[st.level - 1]], T.newChar || "New character", true, true);
+      var sr = summary.getBoundingClientRect();
+      if (sr.bottom > window.innerHeight || sr.top < 0) summary.scrollIntoView({ block: "center", behavior: "smooth" });
     }
 
     function onPlay() {
@@ -740,6 +773,8 @@
     }
     playBtn.addEventListener("click", onPlay);
     $("[data-act=k-intro-start]", introBox).addEventListener("click", function () { onPlay(); playBtn.focus({ preventScroll: true }); });
+    slots.addEventListener("click", function (e) { if (e.target.closest("[data-act=k-back]")) undo(); });
+    function undo() { if (q && !q.done && q.got.length) { q.got.pop(); renderSlots(); } }
     keys.addEventListener("click", function (e) {
       var b = e.target.closest("[data-k]"); if (!b) return;
       answer(b.getAttribute("data-k"));
@@ -755,6 +790,7 @@
         if (e.target !== document.body && e.target !== playBtn && /^(BUTTON|A|SUMMARY)$/.test(tag)) return;
         e.preventDefault(); onPlay(); return;
       }
+      if (e.key === "Backspace" && q && !q.done && q.got.length) { e.preventDefault(); undo(); return; }
       var k = e.key.length === 1 ? e.key.toUpperCase() : "";
       if (k && q && !q.done && chars().indexOf(k) >= 0) { e.preventDefault(); answer(k); }
     });
@@ -764,7 +800,7 @@
     $("[data-act=k-reset]", box).addEventListener("click", function () {
       if (!confirm(T.resetAsk || "Start again from the beginning?")) return;
       clearOwn(); ML.stopAll();
-      st = { level: 2, wpm: st.wpm, tone: st.tone, mode: "single", stats: {} }; save(); session = { right: 0, total: 0, wrongs: {} }; q = null;
+      session = { right: 0, total: 0, wrongs: {} }; st = { level: 2, wpm: st.wpm, tone: st.tone, mode: "single", stats: {} }; save(); q = null;
       summary.hidden = true; fb.className = "k-feedback"; fb.textContent = T.start || "Press Start and listen.";
       playBtn.textContent = "▶ " + (T.startBtn || "Start"); box.setAttribute("data-state", "idle");
       renderKeys(); render(); renderSlots(); intro(["K", "M"], T.firstChars || "Your first characters", false);

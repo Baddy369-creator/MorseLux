@@ -256,3 +256,15 @@ nav.main.more-left.more-right{-webkit-mask-image:linear-gradient(90deg,transpare
 .k-half{font-size:14px;color:var(--muted);font-weight:500}
 .kchip small{color:var(--muted);font-size:11px}
 @media (max-width:640px){.tool-page .crumbs{display:none}.tool-page .hero{padding-top:12px}.tool-page .lead{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;font-size:15px}.k-main{padding-top:12px}.k-settings label{flex:1 1 45%}}
+@media (max-width:640px){#decoder[data-running] .d-actions .btn:not([data-act=d-mic]):not([data-act=d-demo]){display:none}#decoder[data-running=mic] [data-act=d-demo],#decoder[data-running=demo] [data-act=d-mic]{display:none}}
+
+/* Review round 2 */
+#langhint button{min-width:44px;min-height:44px;display:grid;place-items:center}
+body.has-langhint{padding-bottom:96px}
+.k-line{display:inline-block}.k-line.ok{color:var(--ok)}.k-line.no{color:#ff9b85}
+.btn.k-back{width:52px;min-height:52px;padding:0;justify-content:center;font-size:20px}
+.k-settings label{min-width:0;max-width:100%}
+.k-settings select{max-width:100%;min-width:0;text-overflow:ellipsis}
+@media (max-width:640px){.k-settings label:last-of-type{flex:1 1 100%}.k-settings label:last-of-type select{flex:1}}
+.k-summary .appstore{margin:4px auto 0}
+.k-summary{margin-bottom:14px}

@@ -370,8 +370,9 @@
     var a = hint.querySelector("a[data-lang=" + want + "]");
     if (!a) return;
     a.hidden = false; a.href = link.href; hint.hidden = false;
+    document.body.classList.add("has-langhint");                 /* leave room at the bottom, so the hint covers nothing */
     hint.querySelector("button").addEventListener("click", function () {
-      hint.hidden = true;
+      hint.hidden = true; document.body.classList.remove("has-langhint");
       try { localStorage.setItem("ml-langhint", "1"); } catch (e) {}
     });
   }
