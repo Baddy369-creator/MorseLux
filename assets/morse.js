@@ -81,6 +81,8 @@
   /* ---------- Sound ---------- */
   var ctx = null, active = [], timers = [];
   function audio() {
+    /* iPhone: play the sound even when the ring/silent switch is on (Safari 16.4+) */
+    try { if (navigator.audioSession && navigator.audioSession.type !== "play-and-record") navigator.audioSession.type = "playback"; } catch (e) {}
     if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
     if (ctx.state === "suspended") ctx.resume();
     return ctx;
@@ -409,8 +411,24 @@
   /* Coming back with the browser's back button shows the page again. */
   window.addEventListener("pageshow", function () { document.documentElement.classList.remove("leaving"); });
 
+  /* Phone: the menu scrolls sideways. Show the current page and a hint that there is more. */
+  function initNav() {
+    var nav = document.querySelector("nav.main");
+    if (!nav) return;
+    var cur = nav.querySelector("[aria-current]");
+    if (cur && nav.scrollWidth > nav.clientWidth) nav.scrollLeft = Math.max(0, cur.offsetLeft - (nav.clientWidth - cur.offsetWidth) / 2);
+    function edges() {
+      nav.classList.toggle("more-right", nav.scrollLeft + nav.clientWidth < nav.scrollWidth - 4);
+      nav.classList.toggle("more-left", nav.scrollLeft > 4);
+    }
+    nav.addEventListener("scroll", edges, { passive: true });
+    window.addEventListener("resize", edges);
+    edges();
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     toTop();
+    initNav();
     initTopLinks();
     var tr = document.getElementById("translator");
     if (tr) initTranslator(tr);
