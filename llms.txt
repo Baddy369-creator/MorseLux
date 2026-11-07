@@ -18,7 +18,7 @@
 - [Morse-Übersetzer](https://morselux.com/de/): Kostenloser Morse-Übersetzer und Morsecode-Generator: Text in Morsezeichen und Morsecode in Text, sofort. Mit Ton, Licht und Audio-Download – ohne Werbung.
 - [Morsealphabet](https://morselux.com/de/morsealphabet/): Das komplette Morsealphabet als Tabelle: Buchstaben A–Z, Zahlen 0–9, Satzzeichen und Umlaute. Jedes Zeichen zum Anhören – plus PDF zum Ausdrucken.
 - [Morsecode lernen](https://morselux.com/de/morse-lernen/): Morsecode schnell lernen wie Funker: über den Klang, Zeichen für Zeichen (Koch-Methode), mit kostenlosem Online-Trainer und Tipps fürs tägliche Üben.
-- [Morse-Decoder (Audio)](https://morselux.com/de/morse-decoder/): Kostenloser Morse-Decoder: Hör mit dem Mikrofon zu oder öffne eine MP3-, WAV- oder M4A-Datei und sieh live, wie Morsecode zu Text wird.
+- [Morse-Decoder (Audio)](https://morselux.com/de/morse-decoder/): Morsecode aus Ton übersetzen: Mikrofon an ein Video, Funkgerät oder eine Aufnahme halten oder eine MP3/WAV öffnen. Kostenlos, im Browser, ohne Upload.
 - [Morse-Trainer](https://morselux.com/de/morse-trainer/): Kostenloser Morse- und CW-Trainer online: Zeichen hören, Antwort tippen. Start mit K und M, bei 90 % kommt das nächste dazu – die Koch-Methode.
 - [Dein Name in Morsecode](https://morselux.com/de/name-in-morsecode/): Deinen Namen in Morsecode schreiben: Buchstabe für Buchstabe, zum Anhören und als Bild – ideal für Armband, Tattoo, Gravur und Geschenke. Kostenlos.
 - [Ich liebe dich in Morsecode](https://morselux.com/de/ich-liebe-dich-morsecode/): „Ich liebe dich“ in Morsecode – hier anhören und abschreiben, dazu Hallo, Danke, Gute Nacht, Alles Gute, Hilfe und weitere Wörter in Morse.
@@ -28,9 +28,9 @@
 
 ## Español
 - [Traductor de código Morse](https://morselux.com/es/): Traductor y generador de código Morse gratis: texto a Morse y Morse a texto al instante. Con sonido, luz y descarga de audio, sin anuncios.
-- [Alfabeto Morse](https://morselux.com/es/alfabeto-morse/): El alfabeto Morse completo: todas las letras A–Z, la Ñ, los números 0–9 y los signos de puntuación. Toca cualquier signo para escucharlo. Tabla para imprimir.
+- [Alfabeto Morse](https://morselux.com/es/alfabeto-morse/): Alfabeto y abecedario Morse completo: letras A–Z con la Ñ, números 0–9 y signos de puntuación. Escucha cada signo y descarga la tabla en PDF para imprimir.
 - [Cómo aprender código Morse](https://morselux.com/es/aprender-codigo-morse/): Aprende código Morse rápido como los radioaficionados: por el sonido, signo a signo (método Koch), con un entrenador online gratis y consejos diarios.
-- [Decodificador Morse (audio)](https://morselux.com/es/decodificador-morse/): Decodificador y traductor Morse por audio gratis: escucha con el micrófono o abre un MP3, WAV o M4A y mira cómo el Morse se convierte en texto.
+- [Decodificador Morse (audio)](https://morselux.com/es/decodificador-morse/): Traduce código Morse por sonido: acerca el micrófono a un vídeo, una radio o una grabación, o abre un MP3/WAV. Gratis, en el navegador y sin subir nada.
 - [Entrenador de código Morse](https://morselux.com/es/entrenador-morse/): Entrenador de código Morse y CW gratis: oye un carácter y toca la respuesta. Empieza con K y M y desbloquea el siguiente al 90 %: el método Koch.
 - [Tu nombre en código Morse](https://morselux.com/es/nombre-en-codigo-morse/): Escribe un nombre y míralo en código Morse, letra a letra. Escúchalo y descárgalo como imagen: ideal para pulseras, tatuajes, joyas y regalos. Gratis.
 - [Te quiero en código Morse](https://morselux.com/es/te-quiero-en-codigo-morse/): «Te quiero» en código Morse es - . / --.- ..- .. . .-. --- – escúchalo aquí, junto con te amo, hola, gracias, buenas noches, feliz cumpleaños y más.
