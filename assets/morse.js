@@ -186,6 +186,16 @@
     var freqEl = root.querySelector("#t-freq"), freqOut = root.querySelector("#t-freq-out");
     var lock = false;
 
+    /* the boxes grow downwards with the text, so long messages never need scrolling inside the box;
+       side by side (wide screens) both boxes get the same height */
+    function grow() {
+      var els = [textEl, morseEl], side = textEl.getBoundingClientRect().top === morseEl.getBoundingClientRect().top;
+      els.forEach(function (el) { el.style.height = "auto"; });
+      var hs = els.map(function (el) { return el.scrollHeight + 2; });
+      els.forEach(function (el, i) { el.style.height = (side ? Math.max(hs[0], hs[1]) : hs[i]) + "px"; });
+    }
+    window.addEventListener("resize", function () { grow(); });
+
     function sync(from, pasted) {
       if (lock) return;
       lock = true;
@@ -201,6 +211,7 @@
         textEl.value = fromMorse(morseEl.value);
       }
       lock = false;
+      grow();
     }
     textEl.addEventListener("input", function (e) { sync("text", e.inputType === "insertFromPaste" || e.inputType === "insertFromDrop"); });
     morseEl.addEventListener("input", function () { sync("morse"); });
@@ -255,7 +266,7 @@
         if (v === "." || v === "-") playSound(v, 20, freq());
       });
     });
-    root.querySelector("[data-act=clear]").addEventListener("click", function () { stopAll(); textEl.value = ""; morseEl.value = ""; textEl.focus(); });
+    root.querySelector("[data-act=clear]").addEventListener("click", function () { stopAll(); textEl.value = ""; morseEl.value = ""; grow(); textEl.focus(); });
 
     /* Secret message from a share link */
     var m = location.hash.match(/#m=([A-Za-z0-9_-]+)/);
@@ -265,11 +276,12 @@
         var box = document.getElementById("secret");
         morseEl.value = display(toMorse(secret));
         textEl.value = "";
+        grow();
         if (box) {
           box.hidden = false;
           box.querySelector("[data-secret-morse]").innerHTML = shapes(toMorse(secret));
           box.querySelector("[data-act=reveal]").addEventListener("click", function () {
-            textEl.value = secret;
+            textEl.value = secret; grow();
             box.querySelector("[data-secret-answer]").textContent = secret;
             box.classList.add("revealed");
           });
