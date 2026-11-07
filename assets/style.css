@@ -371,3 +371,11 @@ body.embedded #translator{margin:0}
 .appchips span{padding:8px 14px;border-radius:999px;border:1px solid var(--line);background:var(--card);font-size:15px}
 .privacy-note{margin-top:14px}
 .g22{grid-template-columns:repeat(2,1fr)}@media (max-width:640px){.g22{grid-template-columns:1fr}}
+/* keyboard pictures */
+.kbshots{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin:22px 0 6px}
+.kbshots figure{margin:0;text-align:center}
+.kbshots img{width:100%;height:auto;max-width:300px;border-radius:30px;border:6px solid #1f2a33;box-shadow:0 12px 40px rgba(0,0,0,.45);background:#000}
+.kbshots figcaption{margin-top:10px;display:flex;flex-direction:column;gap:2px}
+.kbshots figcaption span{color:var(--muted);font-size:14px}
+.kbshots-note{font-size:13px;color:var(--muted);text-align:center;margin:0 0 10px}
+@media (max-width:640px){.kbshots{grid-template-columns:repeat(3,72%);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px}.kbshots figure{scroll-snap-align:center}}
