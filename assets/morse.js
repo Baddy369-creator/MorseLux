@@ -507,7 +507,8 @@
       KEY = "ml-daily-v2:" + lang + ":" + lv; st = {};
       try { st = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
       st.stats = st.stats || { played: 0, won: 0, streak: 0, best: 0, last: -1 };
-      if (st.day !== day) { st.day = day; st.guesses = []; st.done = false; }
+      if (st.day !== day || (st.answer && st.answer !== answer)) { st.day = day; st.guesses = []; st.done = false; }
+      st.answer = answer;
       box.querySelector("[data-no]").textContent = "#" + no;
       box.querySelector("[data-len]").textContent = (D.letters || "{n} letters").replace("{n}", answer.length);
       box.querySelector("[data-level-note]").textContent = D["note_" + lv] || "";
