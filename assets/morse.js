@@ -469,43 +469,67 @@
   }
 
   /* Morse puzzle of the day: one word per day for everyone, 4 tries, spoiler-free sharing (like Wordle) */
+  /* Morse puzzle of the day: one word per day and level for everyone, spoiler-free sharing (like Wordle).
+     The word: days are counted from 1 Nov 2026 (local midnight); each level has its own word list in a fixed
+     shuffled order, and day n takes word n of that order, so everybody gets the same word on the same day. */
   function initDaily(box) {
-    var D = L.daily || {}, words = (box.getAttribute("data-words") || "").split(",").filter(Boolean);
-    if (!words.length) return;
+    var D = L.daily || {};
+    var LEVELS = {
+      easy: { max: 6, wpm: 12, shapes: true, hint: true, salt: 3.1 },
+      medium: { max: 4, wpm: 15, shapes: true, hint: true, salt: 0 },
+      hard: { max: 4, wpm: 20, shapes: false, hint: false, salt: 7.7 }
+    };
     var start = Date.UTC(2026, 10, 1), now = new Date();
-    var day = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - start) / 864e5);
-    var order = words.map(function (w, i) { var x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return [x - Math.floor(x), w]; })
-      .sort(function (a, b) { return a[0] - b[0]; }).map(function (p) { return p[1]; });
-    var pick = function (d) { return order[((d % order.length) + order.length) % order.length].toUpperCase(); };
-    var answer = pick(day), no = day + 1, MAX = 4;
-    var yd = box.querySelector("[data-yday]");
-    if (yd && day > 0) yd.textContent = (D.yesterday || "Yesterday's word: {w}").replace("{w}", pick(day - 1));
-    var KEY = "ml-daily-v1:" + (document.documentElement.lang || "en"), st = {};
-    try { st = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
-    st.stats = st.stats || { played: 0, won: 0, streak: 0, best: 0, last: -1 };
-    if (st.day !== day) { st.day = day; st.guesses = []; st.done = false; }
-    function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
-    var code = toMorse(answer);
-    box.querySelector("[data-no]").textContent = "#" + no;
-    box.querySelector("[data-code]").innerHTML = shapes(code);
-    box.querySelector("[data-len]").textContent = (D.letters || "{n} letters").replace("{n}", answer.replace(/ /g, "").length);
+    var day = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - start) / 864e5), no = day + 1;
+    var lang = document.documentElement.lang || "en", level = "medium";
+    try { level = localStorage.getItem("ml-daily-level") || "medium"; } catch (e) {}
+    if (!LEVELS[level]) level = "medium";
     var input = box.querySelector("input"), grid = box.querySelector("[data-grid]"), msg = box.querySelector("[data-msg]");
-    var endBox = box.querySelector("[data-end]");
-    input.maxLength = answer.length;
+    var endBox = box.querySelector("[data-end]"), codeEl = box.querySelector("[data-code]"), hintBtn = box.querySelector("[data-act=d-hint]");
+    var cfg, answer, code, st, KEY;
+
+    function orderFor(lv) {
+      var words = (box.getAttribute("data-words-" + lv) || "").split(",").filter(Boolean), salt = LEVELS[lv].salt;
+      return words.map(function (w, i) { var x = Math.sin(i * 12.9898 + 78.233 + salt) * 43758.5453; return [x - Math.floor(x), w]; })
+        .sort(function (p, q) { return p[0] - q[0]; }).map(function (p) { return p[1]; });
+    }
+    function pick(order, d) { return order[((d % order.length) + order.length) % order.length].toUpperCase(); }
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
     function marks(g) { return answer.split("").map(function (c, i) { return g[i] === c ? 1 : (answer.indexOf(g[i]) >= 0 ? 2 : 0); }); }
+
+    function setup(lv) {
+      level = lv; cfg = LEVELS[lv];
+      try { localStorage.setItem("ml-daily-level", lv); } catch (e) {}
+      box.querySelectorAll("[data-level]").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-level") === lv ? "true" : "false"); });
+      var order = orderFor(lv);
+      if (!order.length) return;
+      answer = pick(order, day); code = toMorse(answer);
+      KEY = "ml-daily-v2:" + lang + ":" + lv; st = {};
+      try { st = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+      st.stats = st.stats || { played: 0, won: 0, streak: 0, best: 0, last: -1 };
+      if (st.day !== day) { st.day = day; st.guesses = []; st.done = false; }
+      box.querySelector("[data-no]").textContent = "#" + no;
+      box.querySelector("[data-len]").textContent = (D.letters || "{n} letters").replace("{n}", answer.length);
+      box.querySelector("[data-level-note]").textContent = D["note_" + lv] || "";
+      var yd = box.querySelector("[data-yday]");
+      if (yd) yd.textContent = day > 0 ? (D.yesterday || "Yesterday's word: {w}").replace("{w}", pick(order, day - 1)) : "";
+      hintBtn.hidden = !cfg.hint;
+      input.maxLength = answer.length; input.value = ""; msg.textContent = "";
+      render();
+    }
     function render() {
+      /* hard: only the sound – the dots and dashes appear when the puzzle is over */
+      codeEl.innerHTML = cfg.shapes || st.done ? shapes(code) : '<span class="dg-ear">🎧 ' + (D.earOnly || "Listen only") + "</span>";
       grid.innerHTML = st.guesses.map(function (g) {
         var m = marks(g);
         return '<div class="dg-row">' + g.split("").map(function (c, i) { return '<span class="dg-c s' + m[i] + '">' + c + "</span>"; }).join("") + "</div>";
       }).join("");
-      var left = MAX - st.guesses.length;
-      box.querySelector("[data-left]").textContent = st.done ? "" : (D.left || "{n} tries left").replace("{n}", left);
+      box.querySelector("[data-left]").textContent = st.done ? "" : (D.left || "{n} tries left").replace("{n}", cfg.max - st.guesses.length);
       endBox.hidden = !st.done;
       box.querySelector("form").hidden = st.done;
       if (st.done) {
-        var won = st.guesses[st.guesses.length - 1] === answer;
+        var won = st.guesses[st.guesses.length - 1] === answer, s = st.stats;
         endBox.querySelector("[data-result]").innerHTML = (won ? (D.won || "Solved!") : (D.lost || "The word was")) + " <b>" + answer + "</b>";
-        var s = st.stats;
         endBox.querySelector("[data-stats]").textContent = (D.stats || "Played {p} · won {w} · streak {s} · best {b}")
           .replace("{p}", s.played).replace("{w}", s.won).replace("{s}", s.streak).replace("{b}", s.best);
         tick();
@@ -514,29 +538,28 @@
     function shareText() {
       var won = st.guesses[st.guesses.length - 1] === answer;
       var rows = st.guesses.map(function (g) { return marks(g).map(function (v) { return v === 1 ? "🟩" : v === 2 ? "🟨" : "⬛"; }).join(""); }).join("\n");
-      return (D.shareTitle || "Morse puzzle") + " #" + no + " " + (won ? st.guesses.length : "X") + "/" + MAX + "\n" + rows + "\n" + location.href.split("#")[0];
+      return (D.shareTitle || "Morse puzzle") + " #" + no + " · " + (D["lv_" + level] || level) + " " + (won ? st.guesses.length : "X") + "/" + cfg.max + "\n" + rows + "\n" + location.href.split("#")[0];
     }
     function tick() {
       var t = new Date(), next = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1), ms = next - t;
-      var h = Math.floor(ms / 36e5), m = Math.floor(ms / 6e4) % 60;
-      endBox.querySelector("[data-next]").textContent = (D.next || "Next puzzle in {h} h {m} min").replace("{h}", h).replace("{m}", m);
+      endBox.querySelector("[data-next]").textContent = (D.next || "Next puzzle in {h} h {m} min").replace("{h}", Math.floor(ms / 36e5)).replace("{m}", Math.floor(ms / 6e4) % 60);
     }
-    box.querySelector("[data-act=d-play]").addEventListener("click", function () { stopAll(); playSound(code, 15, 620); });
-    box.querySelector("[data-act=d-hint]").addEventListener("click", function () {
-      msg.textContent = (D.hintText || "First letter: {c}").replace("{c}", answer[0]);
+    box.querySelectorAll("[data-level]").forEach(function (b) {
+      b.addEventListener("click", function () { stopAll(); setup(b.getAttribute("data-level")); });
     });
+    box.querySelector("[data-act=d-play]").addEventListener("click", function () { stopAll(); playSound(code, cfg.wpm, 620); });
+    hintBtn.addEventListener("click", function () { msg.textContent = (D.hintText || "First letter: {c}").replace("{c}", answer[0]); });
     box.querySelector("form").addEventListener("submit", function (e) {
       e.preventDefault();
       if (st.done) return;
-      var g = input.value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9 ]/g, "").trim();
+      var g = input.value.normalize("NFD").replace(/[̀-ͯ]/g, "").toUpperCase().replace(/[^A-Z0-9 ]/g, "").trim();
       if (g.length !== answer.length) { msg.textContent = (D.wrongLen || "The word has {n} letters.").replace("{n}", answer.length); return; }
       msg.textContent = ""; input.value = "";
       st.guesses.push(g);
       var won = g === answer;
-      if (won || st.guesses.length >= MAX) {
+      if (won || st.guesses.length >= cfg.max) {
         st.done = true; var s = st.stats; s.played++;
-        if (won) { s.won++; s.streak = s.last === day - 1 ? s.streak + 1 : 1; s.best = Math.max(s.best, s.streak); } else s.streak = 0;
-        s.last = won ? day : s.last;
+        if (won) { s.won++; s.streak = s.last === day - 1 ? s.streak + 1 : 1; s.best = Math.max(s.best, s.streak); s.last = day; } else s.streak = 0;
       }
       save(); render();
     });
@@ -546,7 +569,7 @@
       if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { toast(D.copied || "Result copied – paste it anywhere"); }, copyFail);
       else copyFail();
     });
-    render();
+    setup(level);
   }
 
   /* offline support (works after the first visit); not inside embedded copies on other websites */

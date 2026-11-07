@@ -8,7 +8,7 @@
 - [How to Learn Morse Code](https://morselux.com/learn-morse-code/): Learn Morse code fast, the way radio operators do: by sound, two letters at a time (Koch method), with a free online trainer and daily practice tips.
 - [Morse Code Decoder (Audio)](https://morselux.com/morse-code-decoder/): Free Morse code audio decoder and translator: listen with your microphone or open an MP3, WAV or M4A file and watch the Morse turn into text live.
 - [Morse Code Trainer](https://morselux.com/morse-code-trainer/): Free online Morse code and CW trainer: hear a character, tap the answer. Start with K and M and unlock the next one at 90 % — the Koch method.
-- [Morse puzzle of the day](https://morselux.com/daily-morse-puzzle/): A new Morse code word every day: listen, decode it in 4 tries and share your result like Wordle. Free, no sign-up – the same puzzle for everyone.
+- [Morse puzzle of the day](https://morselux.com/daily-morse-puzzle/): A new Morse code word every day in 3 levels – easy, medium and hard. Listen, decode it and share your result like Wordle. Free, no sign-up.
 - [Your Name in Morse Code](https://morselux.com/name-in-morse-code/): Type any name and see it in Morse code, letter by letter. Listen to it and download it as an image — great for bracelets, tattoos, jewelry and gifts. Free.
 - [I Love You in Morse Code](https://morselux.com/i-love-you-in-morse-code/): “I love you” in Morse code is .. / .-.. --- ...- . / -.-- --- ..- — listen to it, plus Morse code for hello, thank you, good night, happy birthday and more.
 - [SOS in Morse code](https://morselux.com/sos-in-morse-code/): SOS in Morse code is ··· ––– ··· – three short, three long, three short, sent as one signal. Listen and learn to send it with light, sound or knocking.
@@ -34,7 +34,7 @@
 - [Morsecode lernen](https://morselux.com/de/morse-lernen/): Morsecode schnell lernen wie Funker: über den Klang, Zeichen für Zeichen (Koch-Methode), mit kostenlosem Online-Trainer und Tipps fürs tägliche Üben.
 - [Morse-Decoder (Audio)](https://morselux.com/de/morse-decoder/): Morsecode aus Ton übersetzen: Mikrofon an ein Video, Funkgerät oder eine Aufnahme halten oder eine MP3/WAV öffnen. Kostenlos, im Browser, ohne Upload.
 - [Morse-Trainer](https://morselux.com/de/morse-trainer/): Kostenloser Morse- und CW-Trainer online: Zeichen hören, Antwort tippen. Start mit K und M, bei 90 % kommt das nächste dazu – die Koch-Methode.
-- [Morse-Rätsel des Tages](https://morselux.com/de/morse-raetsel/): Jeden Tag ein neues Wort in Morsecode: anhören, in 4 Versuchen entschlüsseln und das Ergebnis wie bei Wordle teilen. Kostenlos, ohne Anmeldung.
+- [Morse-Rätsel des Tages](https://morselux.com/de/morse-raetsel/): Jeden Tag ein neues Wort in Morsecode, in 3 Stufen – leicht, mittel und schwer. Anhören, entschlüsseln und wie bei Wordle teilen. Kostenlos.
 - [Dein Name in Morsecode](https://morselux.com/de/name-in-morsecode/): Deinen Namen in Morsecode schreiben: Buchstabe für Buchstabe, zum Anhören und als Bild – ideal für Armband, Tattoo, Gravur und Geschenke. Kostenlos.
 - [Ich liebe dich in Morsecode](https://morselux.com/de/ich-liebe-dich-morsecode/): „Ich liebe dich“ in Morsecode – hier anhören und abschreiben, dazu Hallo, Danke, Gute Nacht, Alles Gute, Hilfe und weitere Wörter in Morse.
 - [SOS in Morsecode](https://morselux.com/de/sos-morsecode/): SOS in Morsecode ist ··· ––– ··· – drei kurz, drei lang, drei kurz, als ein Zeichen. Hier anhören und lernen, wie man SOS mit Licht, Ton oder Klopfen sendet.
@@ -60,7 +60,7 @@
 - [Cómo aprender código Morse](https://morselux.com/es/aprender-codigo-morse/): Aprende código Morse rápido como los radioaficionados: por el sonido, signo a signo (método Koch), con un entrenador online gratis y consejos diarios.
 - [Decodificador Morse (audio)](https://morselux.com/es/decodificador-morse/): Traduce código Morse por sonido: acerca el micrófono a un vídeo, una radio o una grabación, o abre un MP3/WAV. Gratis, en el navegador y sin subir nada.
 - [Entrenador de código Morse](https://morselux.com/es/entrenador-morse/): Entrenador de código Morse y CW gratis: oye un carácter y toca la respuesta. Empieza con K y M y desbloquea el siguiente al 90 %: el método Koch.
-- [Acertijo Morse del día](https://morselux.com/es/acertijo-morse/): Una palabra nueva en código Morse cada día: escúchala, descífrala en 4 intentos y comparte tu resultado como en Wordle. Gratis y sin registro.
+- [Acertijo Morse del día](https://morselux.com/es/acertijo-morse/): Una palabra nueva en código Morse cada día, en 3 niveles: fácil, medio y difícil. Escúchala, descífrala y comparte tu resultado como en Wordle. Gratis.
 - [Tu nombre en código Morse](https://morselux.com/es/nombre-en-codigo-morse/): Escribe un nombre y míralo en código Morse, letra a letra. Escúchalo y descárgalo como imagen: ideal para pulseras, tatuajes, joyas y regalos. Gratis.
 - [Te quiero en código Morse](https://morselux.com/es/te-quiero-en-codigo-morse/): «Te quiero» en código Morse es - . / --.- ..- .. . .-. --- – escúchalo aquí, junto con te amo, hola, gracias, buenas noches, feliz cumpleaños y más.
 - [SOS en código Morse](https://morselux.com/es/sos-en-codigo-morse/): SOS en código Morse es ··· ––– ···: tres cortas, tres largas, tres cortas, como una sola señal. Escúchalo y aprende a enviarlo con luz, sonido o golpes.
