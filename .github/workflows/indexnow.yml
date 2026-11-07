@@ -1,0 +1,19 @@
+# Tells Bing and other IndexNow search engines about the pages after every change of the website.
+name: IndexNow
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Wait for GitHub Pages
+        run: sleep 90
+      - name: Send all pages from the sitemap
+        run: |
+          KEY=23fb56aeaed1e3d3ee35b297dcdd63ae
+          URLS=$(grep -o '<loc>[^<]*</loc>' sitemap.xml | sed 's/<\/*loc>//g' | python3 -c 'import sys,json;print(json.dumps([l.strip() for l in sys.stdin if l.strip()]))')
+          BODY="{\"host\":\"morselux.com\",\"key\":\"$KEY\",\"keyLocation\":\"https://morselux.com/$KEY.txt\",\"urlList\":$URLS}"
+          curl -s -o /dev/null -w "IndexNow answered %{http_code}\n" -X POST "https://api.indexnow.org/indexnow" -H "Content-Type: application/json; charset=utf-8" -d "$BODY"

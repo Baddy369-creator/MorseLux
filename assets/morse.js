@@ -440,8 +440,37 @@
     edges();
   }
 
+  /* Keyboard demo: how the Morse Lux keyboard types (dot, dash, letter gap, space, delete) */
+  function initKbDemo(box) {
+    var out = box.querySelector("[data-kb-out]"), codeEl = box.querySelector("[data-kb-code]"), letterEl = box.querySelector("[data-kb-letter]");
+    var text = "", code = "", timer = null;
+    function render() {
+      out.textContent = text;
+      codeEl.innerHTML = code ? shapes(code) : "";
+      letterEl.textContent = code ? (DECODE[code] || "?") : "";
+      box.classList.toggle("has-text", !!text);
+    }
+    function commit() { if (code) { text += DECODE[code] || ""; code = ""; } }
+    box.addEventListener("click", function (e) {
+      var b = e.target.closest("[data-kb]"); if (!b) return;
+      var k = b.getAttribute("data-kb");
+      clearTimeout(timer);
+      if (k === "." || k === "-") {
+        if (code.length < 8) code += k;
+        try { playSound(k, 22, 640); } catch (err) {}
+        timer = setTimeout(function () { commit(); render(); }, 1400);   /* like the keyboard: a short pause ends the letter */
+      } else if (k === "next") commit();
+      else if (k === "space") { commit(); text += " "; }
+      else if (k === "back") { if (code) code = code.slice(0, -1); else text = text.slice(0, -1); }
+      render();
+    });
+    render();
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     toTop();
+    var kb = document.getElementById("kbdemo");
+    if (kb) initKbDemo(kb);
     initNav();
     initTopLinks();
     var tr = document.getElementById("translator");
