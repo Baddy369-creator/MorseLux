@@ -268,3 +268,17 @@ body.has-langhint{padding-bottom:96px}
 @media (max-width:640px){.k-settings label:last-of-type{flex:1 1 100%}.k-settings label:last-of-type select{flex:1}}
 .k-summary .appstore{margin:4px auto 0}
 .k-summary{margin-bottom:14px}
+
+/* Review round 3 */
+#langhint.inline{position:static;max-width:none;margin:12px 0 0;box-shadow:none}
+#langhint{bottom:calc(12px + env(safe-area-inset-bottom))}
+header.site,footer.site{padding-left:max(0px,env(safe-area-inset-left));padding-right:max(0px,env(safe-area-inset-right))}
+.k-settings select{font-size:16px;min-height:44px;text-overflow:clip}
+@media (max-width:640px){.tool-page .lead{display:block;-webkit-line-clamp:unset;overflow:visible}}
+@media (hover:none){.kbd-only{display:none}}
+.btn.spent{background:var(--card2);color:var(--muted);border-color:var(--line)}
+.k-badges{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.kbadge{display:inline-flex;flex-direction:column;align-items:center;gap:2px;min-width:74px;padding:7px 8px;border:1px solid var(--line);border-radius:12px;background:#071521;font-size:12px;font-weight:600;color:var(--muted);text-align:center}
+.kbadge b{font-size:18px}.kbadge small{font-size:10px;font-weight:500}
+.kbadge.got{border-color:rgba(255,201,107,.6);color:var(--text)}
+.k-newbadge{display:block;margin-top:8px;color:var(--amber);font-weight:700}

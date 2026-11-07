@@ -14,12 +14,13 @@
     var table = {}, k;
     for (k in decode) table[k] = decode[k];
     var extra = { "...-.-": "<SK>", "...-.": "<SN>", "........": "<HH>", "-.-.-": "<KA>", ".-...": "<AS>", "-.--.": "<KN>", ".-.-.": "<AR>", "-...-": "<BT>" };
-    for (k in extra) if (!table[k]) table[k] = extra[k];
+    for (k in extra) table[k] = extra[k];                        /* in the decoder the prosign is the better reading */
+    for (var d = 6; d <= 9; d++) table[new Array(d + 1).join(".")] = "<HH>";   /* "error": 8 dots, often sent as 6–9 */
     this.decodeTable = table;
     this.hop = Math.max(64, Math.round(sampleRate * 0.004));      /* one step = 4 ms */
     this.win = Math.round(sampleRate * 0.012);                     /* tone filter looks at 12 ms */
     this.freqs = [];
-    for (var f = 300; f <= 2500; f += 20) this.freqs.push(f);     /* tones from 300 to 2500 Hz (buzzers and whistles too) */
+    for (var f = 300; f <= 3500; f += 20) this.freqs.push(f);     /* tones from 300 to 3500 Hz (buzzers, whistles, piezo beepers) */
     this.coef = this.freqs.map(function (fr) { return 2 * Math.cos(2 * Math.PI * fr / sampleRate); });
     this.bAvg = this.freqs.map(function () { return null; });     /* per tone: average loudness */
     this.bMod = this.freqs.map(function () { return 0; });        /* per tone: how much it switches on and off */
@@ -36,7 +37,7 @@
     this.level = 0; this.snr = 0;
     this.dotMs = 0; this.wpmDot = 0;
     this.hist = [];             /* loudness of the last 6 s, to look again when the noise level was misjudged */
-    this.checked = false; this.early = null;
+    this.checked = false; this.early = null; this.half = 1;
   }
 
   /* Where is the line between "tone" and "no tone"? In the middle between noise and tone, but never more
@@ -123,7 +124,7 @@
     return row;
   };
   Decoder.prototype.lockDb = function (row) {
-    var lo = Math.max(0, this.lock - 1), hi = Math.min(row.length - 1, this.lock + 1), m = -100;
+    var lo = Math.max(0, this.lock - this.half), hi = Math.min(row.length - 1, this.lock + this.half), m = -100;
     for (var k = lo; k <= hi; k++) m = Math.max(m, row[k]);
     return m;
   };
@@ -135,7 +136,7 @@
     if (!this.early || !this.early.length) return;
     /* choose the tone again, from all of the first seconds: the one with the biggest difference
        between its quiet and its loud moments (slightly smoothed, so random noise does not win) */
-    var rows = this.early, n = rows.length, bestK = this.lock, bestC = -1;
+    var rows = this.early, n = rows.length, bestK = this.lock, bestC = -1, cs = [];
     for (var k = 0; k < this.freqs.length; k++) {
       var v = new Float32Array(n), prev = 0;
       for (var i = 0; i < n; i++) { var pw = Math.pow(10, rows[i][k] / 10); prev = i ? prev + (pw - prev) * 0.5 : pw; v[i] = toDb(prev); }
@@ -143,9 +144,13 @@
       var q = function (f) { return v[Math.min(n - 1, Math.floor(n * f))]; };
       /* Morse jumps between two levels (loud tone, quiet pause); speech and noise slide in between */
       var c = (q(0.95) - q(0.3)) - 1.5 * (q(0.97) - q(0.85)) + 0.3 * q(0.5);
+      cs.push(c);
       if (c > bestC) { bestC = c; bestK = k; }
     }
     this.lock = bestK;
+    /* how wide is the signal? a whistle wobbles over several neighbouring tones, a clean beep does not */
+    this.half = 1;
+    while (this.half < 4 && (cs[bestK - this.half - 1] > bestC * 0.6 || cs[bestK + this.half + 1] > bestC * 0.6)) this.half++;
     var vals = rows.map(function (row) { return self.lockDb(row); });
     this.hist = vals.slice(-1500);
     this.early = null;
@@ -161,7 +166,7 @@
       if (this.early.length || Math.max.apply(null, row) > -99) this.early.push(row);
     } else {
       if (this.stepNo++ % 4 === 0) this.scan(0.012, false);
-      var n = this.freqs.length, lo = Math.max(0, this.lock - 1), hi = Math.min(n - 1, this.lock + 1), p = 0;
+      var n = this.freqs.length, lo = Math.max(0, this.lock - this.half), hi = Math.min(n - 1, this.lock + this.half), p = 0;
       for (var k = lo; k <= hi; k++) p = Math.max(p, this.goertzel(k));
       db = toDb(p);
     }
@@ -204,7 +209,8 @@
     if (!this.on && this.checked) {
       var marks = 0;
       for (var m = 0; m < this.events.length; m++) if (this.events[m][0]) marks++;
-      if (marks >= 20 && ms >= Math.max(1000, (this.dotMs || 80) * 10)) {
+      if (marks >= 20 && ms >= Math.max(1000, (this.dotMs || 80) * 10) &&
+          ms > wordThreshold(this.events, this.estimate(this.events).dot)) {   /* only at a real break, not a long pause between letters */
         var all = this.events.splice(0, this.events.length), rr = this.decodeEvents(all.slice(0, -1), ms, true);
         this.committed += rr.text; this.committedMorse += rr.morse;
         if (this.committed && this.committed.slice(-1) !== " ") { this.committed += " "; this.committedMorse += "/ "; }
@@ -293,15 +299,30 @@
     return Math.max(dot * 5, mean * 1.6);
   }
 
+  /* a whistle with a ball flutters: tiny gaps inside one beep are not real pauses */
+  function mergeShortGaps(evs, maxGap) {
+    var out = [];
+    for (var i = 0; i < evs.length; i++) {
+      var e = evs[i];
+      if (!e[0] && e[1] < maxGap && out.length && out[out.length - 1][0] && i + 1 < evs.length && evs[i + 1][0]) {
+        out[out.length - 1] = [1, out[out.length - 1][1] + e[1] + evs[i + 1][1]]; i++; continue;
+      }
+      if (e[0] && out.length && out[out.length - 1][0]) out[out.length - 1] = [1, out[out.length - 1][1] + e[1]];
+      else out.push([e[0], e[1]]);
+    }
+    return out;
+  }
+
   Decoder.prototype.decodeEvents = function (evs, trailingSilence, final) {
-    evs = clean(evs, 16);
+    evs = mergeShortGaps(clean(evs, 16), 14);
     var est = this.estimate(evs), dot = est.dot;
-    evs = clean(evs, Math.max(16, dot * 0.3));
+    evs = mergeShortGaps(clean(evs, Math.max(16, dot * 0.3)), Math.min(40, dot * 0.35));
     var split = est.split || dot * 2, wordThr = wordThreshold(evs, dot);
     /* a single short blip in a long silence is noise, not an E */
     evs = evs.filter(function (e, i) {
       if (!e[0] || e[1] > dot * 1.6) return true;
-      var before = i === 0 || evs[i - 1][1] > 2000, after = i === evs.length - 1 ? trailingSilence > wordThr || final : evs[i + 1][1] > wordThr;
+      var lone = Math.max(2000, wordThr * 3);                    /* much longer than a normal pause between words */
+      var before = i === 0 || evs[i - 1][1] > lone, after = i === evs.length - 1 ? trailingSilence > lone || final : evs[i + 1][1] > lone;
       return !(before && after && i > 0);
     });
     evs = clean(evs, 0);
@@ -424,6 +445,8 @@
     function leftMs() { return Math.max(0, FREE_MS - usedMs() - (mode === "mic" && micStart ? Date.now() - micStart : 0)); }
     function showFree() {
       var left = Math.ceil(leftMs() / 1000);
+      micBtn.classList.toggle("spent", left <= 0 && mode !== "mic");
+      if (left <= 0 && mode !== "mic") micBtn.textContent = D.micTomorrow || "🎙 Microphone: again tomorrow";
       freeInfo.textContent = (D.freeLeft || "Free microphone time today: {s} s").replace("{s}", left);
       freeInfo.classList.toggle("low", left <= 10);
     }
@@ -457,7 +480,13 @@
       while (history.length > tape.width) history.shift();
       drawTape();
       meter.style.width = Math.round(r.level * 100) + "%";
-      if (now - lastUi > 120) { lastUi = now; show(r); if (mode === "mic") { showFree(); if (leftMs() <= 0) { limitReached(); return; } } }
+      if (now - lastUi > 120) {
+        lastUi = now; show(r);
+        if (mode === "mic") {
+          if (micStart && Date.now() - micStart > 1000) { addUsed(Date.now() - micStart); micStart = Date.now(); }   /* saved as it goes: other tabs see it */
+          showFree(); if (leftMs() <= 0) { limitReached(); return; }
+        }
+      }
       raf = requestAnimationFrame(loop);
     }
     function teardown() {
@@ -470,6 +499,7 @@
       if (mode === "mic" || mode === "asking") audioSession("playback");
       mode = ""; box.removeAttribute("data-running");
       micBtn.textContent = D.mic || "Start microphone"; demoBtn.textContent = D.demo || "Try an example";
+      showFree();
     }
     function finishDec() {
       if (!dec) return;
@@ -573,12 +603,17 @@
       var f = fileIn.files && fileIn.files[0];
       fileIn.value = "";
       if (!f) return;
-      if (f.size > 100 * 1024 * 1024 && !confirm(D.bigFile || "This file is very large and may take a long time. Continue?")) return;
+      if (f.size > 60 * 1024 * 1024 && !confirm(D.bigFile || "This file is very large and may take a long time. Continue?")) return;
       var my = begin("file");
       setStatus(D.reading + " " + f.name);
       f.arrayBuffer().then(function (ab) {
         if (my !== job) return null;
-        return new Promise(function (res, rej) { var pr = ac.decodeAudioData(ab, res, rej); if (pr && pr.catch) pr.catch(function () {}); });
+        /* decode at 16 kHz: a 30-minute recording then needs about a quarter of the memory */
+        var OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext, small = null;
+        try { if (OAC) small = new OAC(1, 16000, 16000); } catch (e) { small = null; }
+        var ctx = small || ac;
+        return new Promise(function (res, rej) { var pr = ctx.decodeAudioData(ab, res, rej); if (pr && pr.catch) pr.catch(function () {}); })
+          .catch(function (e) { if (ctx === ac) throw e; return new Promise(function (res, rej) { var pr = ac.decodeAudioData(ab, res, rej); if (pr && pr.catch) pr.catch(function () {}); }); });
       }).then(function (buf) {
         if (!buf || my !== job) return;
         var ch = buf.numberOfChannels, len = buf.length, data = new Float32Array(len), energy = 0, best = null, bestE = 0;
@@ -609,7 +644,8 @@
     $("[data-act=d-copy]", box).addEventListener("click", function () {
       var t = out.value.trim().replace(/…$/, "");
       if (!t) { ML.toast(D.nothingToCopy || L.empty || "Nothing to copy yet"); return; }
-      navigator.clipboard.writeText(t).then(function () { ML.toast(D.copied || "Text copied"); });
+      if (!navigator.clipboard) { ML.toast(D.copyFail || "Copying is not possible here"); return; }
+      navigator.clipboard.writeText(t).then(function () { ML.toast(D.copied || "Text copied"); }, function () { ML.toast(D.copyFail || "Copying is not possible here"); });
     });
     $("[data-act=d-clear]", box).addEventListener("click", function () {
       teardown(); dec = null;
@@ -620,6 +656,7 @@
     window.addEventListener("pagehide", function () { if (mode) stop(false); });
     stats.innerHTML = statsHtml(0, 0);
     showFree();
+    if (leftMs() <= 0) { limitBox.hidden = false; setStatus(D.limitStatus || "Your free microphone time for today is used up."); }
     drawTape();
   }
 
@@ -749,19 +786,31 @@
       }).join("");
       if (autoplay) { var l3 = []; for (var i = 0; i < 3; i++) l3 = l3.concat(list); playSeq(l3); }
     }
+    var BADGES = [5, 10, 15, 20, 25, 30, 35, 40];
+    function renderBadges() {
+      var names = T.badges || [];
+      $("#k-badges", box).innerHTML = BADGES.map(function (n, i) {
+        var got = st.level >= n;
+        return '<span class="kbadge' + (got ? " got" : "") + '" title="' + n + " " + (T.chars || "characters") + '"><b>' + (got ? "🏅" : "🔒") + "</b>" + (names[i] || n) + "<small>" + n + " " + (T.chars || "characters") + "</small></span>";
+      }).join("");
+    }
     function finish() {
       clearOwn();
       var a = session.total ? session.right / session.total : 0, pct = Math.round(a * 100);
       summary.hidden = false; box.setAttribute("data-state", "done");
       var up = a >= 0.9 && st.level < KOCH.length, msg;
       $("[data-sum-score]", summary).textContent = pct + " %";
-      if (up) { st.level++; save(); msg = (T.unlocked || "New character unlocked:") + " <b>" + chars()[st.level - 1] + "</b>"; }
+      if (up) {
+        st.level++; save(); msg = (T.unlocked || "New character unlocked:") + " <b>" + chars()[st.level - 1] + "</b>";
+        var bi = BADGES.indexOf(st.level);
+        if (bi >= 0) msg += '<span class="k-newbadge">🏅 ' + (T.newBadge || "New badge:") + " <b>" + ((T.badges || [])[bi] || st.level) + "</b></span>";
+      }
       else if (st.level >= KOCH.length && a >= 0.9) msg = T.allDone || "You know all 40 characters!";
       else msg = (T.again || "Reach 90 % to unlock the next character. Practice:") + " " + Object.keys(session.wrongs).map(function (c) { return "<b>" + c + "</b>"; }).join(" ");
       $("[data-sum-msg]", summary).innerHTML = msg;
       session = { right: 0, total: 0, wrongs: {} }; q = null; save();
       playBtn.textContent = "▶ " + (T.startRound || "Next round");
-      renderKeys(); render(); renderSlots();
+      renderKeys(); render(); renderSlots(); renderBadges();
       if (up) intro([chars()[st.level - 1]], T.newChar || "New character", true, true);
       var sr = summary.getBoundingClientRect();
       if (sr.bottom > window.innerHeight || sr.top < 0) summary.scrollIntoView({ block: "center", behavior: "smooth" });
@@ -803,10 +852,10 @@
       session = { right: 0, total: 0, wrongs: {} }; st = { level: 2, wpm: st.wpm, tone: st.tone, mode: "single", stats: {} }; save(); q = null;
       summary.hidden = true; fb.className = "k-feedback"; fb.textContent = T.start || "Press Start and listen.";
       playBtn.textContent = "▶ " + (T.startBtn || "Start"); box.setAttribute("data-state", "idle");
-      renderKeys(); render(); renderSlots(); intro(["K", "M"], T.firstChars || "Your first characters", false);
+      renderKeys(); render(); renderSlots(); renderBadges(); intro(["K", "M"], T.firstChars || "Your first characters", false);
     });
     $("[data-act=k-intro-play]", introBox).addEventListener("click", function () { playSeq((introBox.getAttribute("data-chars") || "").split("")); });
-    renderKeys(); render(); renderSlots();
+    renderKeys(); render(); renderSlots(); renderBadges();
     if (st.level === 2 && !Object.keys(st.stats).length) intro(["K", "M"], T.firstChars || "Your first characters", false);
     else introBox.hidden = true;
   }

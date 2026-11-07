@@ -80,6 +80,8 @@
 
   /* ---------- Sound ---------- */
   var ctx = null, active = [], timers = [];
+  function copyFail() { toast(L.copyFail || "Copying is not possible here"); }
+
   function audio() {
     /* iPhone: play the sound even when the ring/silent switch is on (Safari 16.4+) */
     try { if (navigator.audioSession && navigator.audioSession.type !== "play-and-record") navigator.audioSession.type = "playback"; } catch (e) {}
@@ -216,7 +218,7 @@
     root.querySelector("[data-act=stop]").addEventListener("click", stopAll);
     root.querySelector("[data-act=copy]").addEventListener("click", function () {
       if (!morseEl.value.trim()) { toast(L.empty || "Type something first"); return; }
-      navigator.clipboard.writeText(ascii(morseEl.value)).then(function () { toast(L.copied || "Copied"); });
+      navigator.clipboard.writeText(ascii(morseEl.value)).then(function () { toast(L.copied || "Copied"); }, copyFail);
     });
     root.querySelector("[data-act=wav]").addEventListener("click", function () {
       var m = morseEl.value.trim();
@@ -232,7 +234,7 @@
       var url = location.origin + location.pathname + "#m=" + encodeShare(t);
       var msg = (L.shareText || "Can you decode this Morse message?") + "\n" + toMorse(t) + "\n";
       if (navigator.share) navigator.share({ title: "Morse", text: msg, url: url }).catch(function () {});
-      else navigator.clipboard.writeText(msg + url).then(function () { toast(L.linkCopied || "Link copied"); });
+      else navigator.clipboard.writeText(msg + url).then(function () { toast(L.linkCopied || "Link copied"); }, copyFail);
     });
     root.querySelectorAll("[data-key]").forEach(function (k) {
       k.addEventListener("click", function () {
@@ -301,7 +303,7 @@
     });
     root.querySelector("[data-act=n-copy]").addEventListener("click", function () {
       var m = toMorse(input.value); if (!m) { toast(L.empty || "Type something first"); return; }
-      navigator.clipboard.writeText(m).then(function () { toast(L.copied || "Copied"); });
+      navigator.clipboard.writeText(m).then(function () { toast(L.copied || "Copied"); }, copyFail);
     });
     root.querySelector("[data-act=n-png]").addEventListener("click", function () {
       var ls = letters().filter(function (c, i, a) { return c !== " " || (i && a[i - 1] !== " "); });
@@ -370,7 +372,9 @@
     var a = hint.querySelector("a[data-lang=" + want + "]");
     if (!a) return;
     a.hidden = false; a.href = link.href; hint.hidden = false;
-    document.body.classList.add("has-langhint");                 /* leave room at the bottom, so the hint covers nothing */
+    var tool = document.querySelector("main.tool-page");
+    if (tool) { tool.insertBefore(hint, tool.firstChild); hint.classList.add("inline"); }   /* on tools it must not cover the buttons */
+    else document.body.classList.add("has-langhint");                 /* leave room at the bottom, so the hint covers nothing */
     hint.querySelector("button").addEventListener("click", function () {
       hint.hidden = true; document.body.classList.remove("has-langhint");
       try { localStorage.setItem("ml-langhint", "1"); } catch (e) {}
