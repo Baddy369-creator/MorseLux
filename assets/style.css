@@ -353,3 +353,4 @@ body.embedded #translator{margin:0}
 .dg-result{font-size:20px}
 @media (max-width:420px){.dg-c{width:34px;height:40px;font-size:17px}}
 .k-share{margin-left:6px;min-height:36px;padding:6px 12px;font-size:14px}
+.updated{margin:10px 0 0;font-size:13px;color:var(--muted)}.chips a.chip-daily{border-color:var(--amber);color:var(--amber)}.dg-yday{margin-top:10px}

@@ -476,7 +476,10 @@
     var day = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - start) / 864e5);
     var order = words.map(function (w, i) { var x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return [x - Math.floor(x), w]; })
       .sort(function (a, b) { return a[0] - b[0]; }).map(function (p) { return p[1]; });
-    var answer = order[((day % order.length) + order.length) % order.length].toUpperCase(), no = day + 1, MAX = 4;
+    var pick = function (d) { return order[((d % order.length) + order.length) % order.length].toUpperCase(); };
+    var answer = pick(day), no = day + 1, MAX = 4;
+    var yd = box.querySelector("[data-yday]");
+    if (yd && day > 0) yd.textContent = (D.yesterday || "Yesterday's word: {w}").replace("{w}", pick(day - 1));
     var KEY = "ml-daily-v1:" + (document.documentElement.lang || "en"), st = {};
     try { st = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
     st.stats = st.stats || { played: 0, won: 0, streak: 0, best: 0, last: -1 };
@@ -544,6 +547,11 @@
       else copyFail();
     });
     render();
+  }
+
+  /* offline support (works after the first visit); not inside embedded copies on other websites */
+  if ("serviceWorker" in navigator && location.protocol === "https:" && !(document.body && document.body.classList.contains("embedded"))) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("/sw.js").catch(function () {}); });
   }
 
   document.addEventListener("DOMContentLoaded", function () {
