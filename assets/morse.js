@@ -383,6 +383,21 @@
   }
 
   /* ---------- Language hint (no redirect, so search engines see every version) ---------- */
+  /* ---------- Android: the app is iPhone-only, so no dead App Store buttons ---------- */
+  function initAndroid() {
+    if (!/Android/i.test(navigator.userAgent || "")) return;
+    document.documentElement.classList.add("is-android");
+    var kb = document.querySelector(".kb-hero");
+    var links = document.querySelectorAll("a.appstore");
+    for (var i = 0; i < links.length; i++) {
+      var a = links[i], p = document.createElement("p");
+      p.className = "android-note";
+      var full = (kb && L.androidKb) || L.android || "The app is iPhone-only.";
+      p.textContent = (i === 0 && !a.closest("footer")) ? full : (L.androidShort || full);
+      a.parentNode.replaceChild(p, a);
+    }
+  }
+
   function initLangHint() {
     var hint = document.getElementById("langhint");
     if (!hint) return;
@@ -519,7 +534,7 @@
       KEY = "ml-daily-v2:" + lang + ":" + lv; st = {};
       try { st = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
       st.stats = st.stats || { played: 0, won: 0, streak: 0, best: 0, last: -1 };
-      if (st.day !== day || (st.answer && st.answer !== answer)) { st.day = day; st.guesses = []; st.done = false; }
+      if (st.day !== day || (st.answer && st.answer !== answer)) { st.day = day; st.guesses = []; st.done = false; st.hints = 0; st.revealed = false; }
       st.answer = answer;
       box.querySelector("[data-no]").textContent = "#" + no;
       box.querySelector("[data-len]").textContent = (D.letters || "{n} letters").replace("{n}", answer.length);
@@ -528,6 +543,8 @@
       if (yd) yd.textContent = day > 0 ? (D.yesterday || "Yesterday's word: {w}").replace("{w}", pick(order, day - 1)) : "";
       hintBtn.hidden = !cfg.hint;
       input.maxLength = answer.length; input.value = ""; msg.textContent = "";
+      hintLabel();
+      if (st.hints && !st.done) msg.textContent = (D.hintText || "First letter: {c}").replace("{c}", answer[0]);
       render();
     }
     function render() {
@@ -539,10 +556,11 @@
       }).join("");
       box.querySelector("[data-left]").textContent = st.done ? "" : (D.left || "{n} tries left").replace("{n}", cfg.max - st.guesses.length);
       endBox.hidden = !st.done;
+      hintBtn.hidden = !cfg.hint || st.done;
       box.querySelector("form").hidden = st.done;
       if (st.done) {
         var won = st.guesses[st.guesses.length - 1] === answer, s = st.stats;
-        endBox.querySelector("[data-result]").innerHTML = (won ? (D.won || "Solved!") : (D.lost || "The word was")) + " <b>" + answer + "</b>";
+        endBox.querySelector("[data-result]").innerHTML = (won ? (D.won || "Solved!") : st.revealed ? (D.revealed || "Revealed. The word was") : (D.lost || "The word was")) + " <b>" + answer + "</b>";
         endBox.querySelector("[data-stats]").textContent = (D.stats || "Played {p} · won {w} · streak {s} · best {b}")
           .replace("{p}", s.played).replace("{w}", s.won).replace("{s}", s.streak).replace("{b}", s.best);
         tick();
@@ -551,7 +569,7 @@
     function shareText() {
       var won = st.guesses[st.guesses.length - 1] === answer;
       var rows = st.guesses.map(function (g) { return marks(g).map(function (v) { return v === 1 ? "🟩" : v === 2 ? "🟨" : "⬛"; }).join(""); }).join("\n");
-      return (D.shareTitle || "Morse puzzle") + " #" + no + " · " + (D["lv_" + level] || level) + " " + (won ? st.guesses.length : "X") + "/" + cfg.max + "\n" + rows + "\n" + location.href.split("#")[0];
+      return (D.shareTitle || "Morse puzzle") + " #" + no + " · " + (D["lv_" + level] || level) + " " + (won ? st.guesses.length : "X") + "/" + cfg.max + (st.revealed ? " 💡" : "") + "\n" + rows + "\n" + location.href.split("#")[0];
     }
     function tick() {
       var t = new Date(), next = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1), ms = next - t;
@@ -561,7 +579,19 @@
       b.addEventListener("click", function () { stopAll(); setup(b.getAttribute("data-level")); });
     });
     box.querySelector("[data-act=d-play]").addEventListener("click", function () { stopAll(); playSound(code, cfg.wpm, 620); });
-    hintBtn.addEventListener("click", function () { msg.textContent = (D.hintText || "First letter: {c}").replace("{c}", answer[0]); });
+    function hintLabel() { hintBtn.textContent = st.hints ? "👀 " + (D.reveal || "Show answer") : "💡 " + (D.hint || "Hint"); }
+    /* 1st press: first letter · 2nd press: the answer (counts as not solved) */
+    hintBtn.addEventListener("click", function () {
+      if (st.done) return;
+      if (!st.hints) {
+        st.hints = 1; save(); hintLabel();
+        msg.textContent = (D.hintText || "First letter: {c}").replace("{c}", answer[0]);
+        return;
+      }
+      st.hints = 2; st.revealed = true; st.done = true;
+      var s = st.stats; s.played++; s.streak = 0;
+      msg.textContent = ""; save(); render();
+    });
     box.querySelector("form").addEventListener("submit", function (e) {
       e.preventDefault();
       if (st.done) return;
@@ -604,6 +634,7 @@
     if (nt) initNameTool(nt);
     initPlayButtons();
     initLangHint();
+    initAndroid();
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") stopAll(); });
     var flash = document.getElementById("flash");
     if (flash) flash.addEventListener("click", stopAll);

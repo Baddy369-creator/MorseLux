@@ -389,3 +389,7 @@ footer.site a.appstore:hover{color:#fff}
 .k-set .k-settings select{min-width:0;width:10.5em;max-width:62%;flex:0 1 auto;text-overflow:ellipsis}
 input[type=range]{height:32px}
 @media (max-width:640px){.embed textarea{font-size:16px}#langhint.inline{margin:10px 0 4px}}
+
+.android-note{background:rgba(255,190,80,.08);border:1px solid rgba(255,190,80,.35);border-radius:12px;padding:10px 13px;margin:8px 0 0;font-size:14px;line-height:1.45;color:var(--text);max-width:520px}
+.cta .android-note{grid-column:1/-1}
+footer.site .android-note{font-size:13px;color:var(--muted)}
