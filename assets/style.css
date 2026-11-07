@@ -324,3 +324,17 @@ table.cmp{table-layout:fixed;width:100%;min-width:0}
 .cmp th,.cmp td{hyphens:auto;-webkit-hyphens:auto;overflow-wrap:break-word;font-size:15px}
 .cmp th:first-child,.cmp td:first-child{width:24%}
 @media (max-width:640px){.cmp th,.cmp td{font-size:13px;padding:8px 5px}}
+/* word pages */
+.wordgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:10px;margin:12px 0 24px}
+.wordgrid a{display:flex;flex-direction:column;gap:4px;padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:var(--card);color:var(--text);text-decoration:none;min-height:44px}
+.wordgrid a:hover{border-color:var(--amber)}
+.wordgrid b{font-size:16px}
+.wordgrid span{font-size:13px;color:var(--amber);letter-spacing:.05em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+table.letters code.ascii{font-size:15px;letter-spacing:.12em;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 4px}
+.chips a{padding:8px 12px;border:1px solid var(--line);border-radius:999px;color:var(--text);text-decoration:none;font-size:14px;min-height:36px;display:inline-flex;align-items:center}
+.chips a:hover{border-color:var(--amber)}
+.embed{margin:18px 0;border:1px solid var(--line);border-radius:12px;padding:0 14px}
+.embed summary{cursor:pointer;padding:12px 0;font-weight:600;min-height:44px}
+.embed textarea{width:100%;font:13px ui-monospace,monospace;background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:14px}
+body.embedded #translator{margin:0}
