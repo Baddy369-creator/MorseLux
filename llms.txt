@@ -10,6 +10,8 @@
 - [Morse Code Trainer](https://morselux.com/morse-code-trainer/): Free online Morse code and CW trainer: hear a character, tap the answer. Start with K and M and unlock the next one at 90 % — the Koch method.
 - [Your Name in Morse Code](https://morselux.com/name-in-morse-code/): Type any name and see it in Morse code, letter by letter. Listen to it and download it as an image — great for bracelets, tattoos, jewelry and gifts. Free.
 - [I Love You in Morse Code](https://morselux.com/i-love-you-in-morse-code/): “I love you” in Morse code is .. / .-.. --- ...- . / -.-- --- ..- — listen to it, plus Morse code for hello, thank you, good night, happy birthday and more.
+- [SOS in Morse code](https://morselux.com/sos-in-morse-code/): SOS in Morse code is ··· ––– ···: three short, three long, three short – sent without gaps as one signal. Listen here and learn to send SOS with light, sound or knocking.
+- [Prosigns and Q codes in Morse radio](https://morselux.com/morse-code-prosigns/): What do AR, SK, KN and BT mean in Morse? All common procedural signs (prosigns), Q codes like QTH and QRM and abbreviations like 73 and CQ – with sound.
 - [Morse Code Keyboard for iPhone](https://morselux.com/morse-code-keyboard/): Type Morse code in WhatsApp, Messages, Instagram and every other app with the Morse Lux keyboard for iPhone: dot and dash keys, normal typing to Morse, or a tap key.
 
 ## Deutsch
@@ -20,6 +22,8 @@
 - [Morse-Trainer](https://morselux.com/de/morse-trainer/): Kostenloser Morse- und CW-Trainer online: Zeichen hören, Antwort tippen. Start mit K und M, bei 90 % kommt das nächste dazu – die Koch-Methode.
 - [Dein Name in Morsecode](https://morselux.com/de/name-in-morsecode/): Gib einen Namen ein und sieh ihn Buchstabe für Buchstabe in Morsecode. Anhören und als Bild herunterladen – ideal für Armband, Tattoo, Schmuck und Geschenke. Kostenlos.
 - [Ich liebe dich in Morsecode](https://morselux.com/de/ich-liebe-dich-morsecode/): „Ich liebe dich“ in Morsecode ist .. -.-. .... / .-.. .. . -... . / -.. .. -.-. .... – hier anhören, dazu Hallo, Danke, Gute Nacht, Alles Gute und mehr in Morse.
+- [SOS in Morsecode](https://morselux.com/de/sos-morsecode/): SOS in Morsecode ist ··· ––– ···: drei kurz, drei lang, drei kurz – ohne Pausen als ein Zeichen. Hier anhören und lernen, wie man SOS mit Licht, Ton oder Klopfen sendet.
+- [Betriebszeichen und Q-Codes im Morsefunk](https://morselux.com/de/morse-betriebszeichen/): Was bedeuten AR, SK, KN und BT im Morsefunk? Alle wichtigen Betriebszeichen (Prosigns), Q-Codes wie QTH und QRM und Abkürzungen wie 73 und CQ – mit Klang.
 - [Morse-Tastatur fürs iPhone](https://morselux.com/de/morse-tastatur/): Mit der Morse-Tastatur von Morse Lux in WhatsApp, iMessage, Instagram und jeder anderen App in Morsecode schreiben: Punkt- und Strich-Tasten, normales Tippen zu Morse oder Morsetaste.
 
 ## Español
@@ -30,4 +34,6 @@
 - [Entrenador de código Morse](https://morselux.com/es/entrenador-morse/): Entrenador de código Morse y CW gratis: oye un carácter y toca la respuesta. Empieza con K y M y desbloquea el siguiente al 90 %: el método Koch.
 - [Tu nombre en código Morse](https://morselux.com/es/nombre-en-codigo-morse/): Escribe un nombre y míralo en código Morse, letra a letra. Escúchalo y descárgalo como imagen: ideal para pulseras, tatuajes, joyas y regalos. Gratis.
 - [Te quiero en código Morse](https://morselux.com/es/te-quiero-en-codigo-morse/): «Te quiero» en código Morse es - . / --.- ..- .. . .-. --- – escúchalo aquí, junto con te amo, hola, gracias, buenas noches, feliz cumpleaños y más.
+- [SOS en código Morse](https://morselux.com/es/sos-en-codigo-morse/): SOS en código Morse es ··· ––– ···: tres cortas, tres largas, tres cortas, sin pausas, como una sola señal. Escúchalo aquí y aprende a enviarlo con luz, sonido o golpes.
+- [Prosignos y códigos Q en la radio Morse](https://morselux.com/es/prosignos-morse/): ¿Qué significan AR, SK, KN y BT en Morse? Los prosignos más usados, códigos Q como QTH y QRM y abreviaturas como 73 y CQ, con sonido.
 - [Teclado Morse para iPhone](https://morselux.com/es/teclado-morse/): Escribe en código Morse en WhatsApp, iMessage, Instagram y cualquier otra app con el teclado de Morse Lux para iPhone: teclas de punto y raya, escritura normal a Morse o tecla de toque.

@@ -71,7 +71,9 @@ textarea:focus{outline:2px solid var(--amber);outline-offset:1px}
 input[type=range]{accent-color:var(--amber);width:130px}
 #flash{position:fixed;inset:0;z-index:50;background:#000;display:none;cursor:pointer}
 #flash.show{display:block}
-#flash.on{background:#fff6dc}
+#flash .lamp{position:absolute;left:50%;top:42%;width:150px;height:150px;margin:-75px 0 0 -75px;border-radius:50%;background:#1a1a1f;box-shadow:0 0 0 2px #2a2a30}
+#flash.on .lamp{background:#fff6dc}
+#flash .flash-note{position:absolute;left:20px;right:20px;top:calc(42% + 100px);margin:0;text-align:center;color:#ddd;font-size:16px;line-height:1.4}
 #flash span{position:absolute;bottom:24px;left:0;right:0;text-align:center;color:#777;font-size:14px}
 #toast{position:fixed;left:50%;bottom:26px;transform:translate(-50%,30px);opacity:0;background:var(--amber);color:#1b1206;font-weight:600;padding:10px 16px;border-radius:12px;transition:.25s;z-index:60;pointer-events:none}
 #toast.show{opacity:1;transform:translate(-50%,0)}
@@ -178,7 +180,7 @@ footer.site h4{color:var(--text);margin:0 0 6px;font-size:14px}
 .big-morse{letter-spacing:0}
 
 /* Tools: shared */
-.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.mt,.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .btn.ghost{background:transparent}
 .d-note{font-size:14px;color:var(--muted);margin:14px 0 0}
 .btn:focus-visible,label.btn:focus-within{outline:2px solid var(--amber);outline-offset:2px}
@@ -282,3 +284,22 @@ header.site,footer.site{padding-left:max(0px,env(safe-area-inset-left));padding-
 .kbadge b{font-size:18px}.kbadge small{font-size:10px;font-weight:500}
 .kbadge.got{border-color:rgba(255,201,107,.6);color:var(--text)}
 .k-newbadge{display:block;margin-top:8px;color:var(--amber);font-weight:700}
+/* round 4: trainer settings folded away, readable fields, one start button, app box below the result */
+.k-set{margin-top:10px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02)}
+.k-set summary{cursor:pointer;padding:10px 14px;min-height:44px;display:flex;align-items:center;gap:8px;font-weight:600;color:var(--muted);font-size:15px;list-style:none}
+.k-set summary::-webkit-details-marker{display:none}
+.k-set summary::after{content:"▾";margin-left:auto;transition:transform .15s}
+.k-set[open] summary::after{transform:rotate(180deg)}
+.k-set-sum{font-weight:500;font-size:14px;color:var(--muted);opacity:.85}
+.k-set .k-settings{margin:0;padding:4px 14px 14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px 16px}
+.k-set .k-settings label{flex:none;max-width:none;justify-content:space-between}
+.k-set .k-settings select{min-width:8.5em;max-width:none;text-overflow:clip;flex:0 0 auto}
+.k-set .k-settings label:last-of-type select{flex:0 0 auto}
+.k-appbox{margin:16px 0 4px;text-align:center;border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.k-appbox .appstore{margin:4px auto 0}
+.kkey.num{font-variant-numeric:slashed-zero;font-feature-settings:"zero" 1;background:rgba(120,170,255,.08)}
+.pro{text-decoration:overline;font-size:.85em;letter-spacing:.02em}
+.kkey.prokey{font-size:18px}
+.k-slots span.empty{color:transparent}
+.k-slots span.empty::after{content:"";width:18px;border-bottom:2px solid var(--muted);opacity:.5;align-self:end;margin-bottom:12px}
+.kbadge small{font-size:12px}

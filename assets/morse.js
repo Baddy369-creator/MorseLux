@@ -114,16 +114,23 @@
     });
     return tl.total + 100;
   }
+  /* Light: a lamp in the middle of a dark screen, never faster than 7 WPM, so it blinks at most about
+     3 times per second (safe for people who are sensitive to flashing light). The first time, a short note comes first. */
   function playLight(morse, wpm) {
-    var f = document.getElementById("flash"), tl = timeline(morse, wpm);
+    var f = document.getElementById("flash");
     if (!f) return 0;
+    var tl = timeline(morse, Math.min(wpm, 7)), lead = 80, note = f.querySelector(".flash-note"), seen = false;
+    try { seen = localStorage.getItem("ml-light-ok") === "1"; localStorage.setItem("ml-light-ok", "1"); } catch (e) {}
+    if (note) note.hidden = seen;
+    if (!seen) lead = 3000;
     f.classList.add("show");
+    if (note && !seen) timers.push(setTimeout(function () { note.hidden = true; }, lead - 200));
     tl.events.forEach(function (ev) {
-      timers.push(setTimeout(function () { f.classList.add("on"); }, ev[0] + 80));
-      timers.push(setTimeout(function () { f.classList.remove("on"); }, ev[0] + ev[1] + 80));
+      timers.push(setTimeout(function () { f.classList.add("on"); }, ev[0] + lead));
+      timers.push(setTimeout(function () { f.classList.remove("on"); }, ev[0] + ev[1] + lead));
     });
-    timers.push(setTimeout(function () { f.classList.remove("show"); }, tl.total + 400));
-    return tl.total + 400;
+    timers.push(setTimeout(function () { f.classList.remove("show"); }, tl.total + lead + 320));
+    return tl.total + lead + 320;
   }
   function playVibration(morse, wpm) {
     if (!navigator.vibrate) return 0;
@@ -212,7 +219,10 @@
     root.querySelector("[data-act=sound]").addEventListener("click", function () { var b = this; run(b, function (m) { return playSound(m, wpm(), freq()); }); });
     root.querySelector("[data-act=light]").addEventListener("click", function () { var b = this; run(b, function (m) { return playLight(m, wpm()); }); });
     root.querySelector("[data-act=vibrate]").addEventListener("click", function () {
-      if (!navigator.vibrate) { toast(L.noVibrate || "Vibration is not supported in this browser"); return; }
+      if (!navigator.vibrate) {
+        var ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+        toast((ios && L.noVibrateIOS) || L.noVibrate || "Vibration is not supported in this browser"); return;
+      }
       var b = this; run(b, function (m) { return playVibration(m, wpm()); });
     });
     root.querySelector("[data-act=stop]").addEventListener("click", stopAll);
@@ -226,7 +236,6 @@
       var a = document.createElement("a");
       a.href = URL.createObjectURL(wavBlob(m, wpm(), freq()));
       a.download = "morse.wav"; document.body.appendChild(a); a.click(); a.remove();
-      if (window.gtag) gtag("event", "download_wav");
     });
     root.querySelector("[data-act=share]").addEventListener("click", function () {
       var t = textEl.value.trim();
