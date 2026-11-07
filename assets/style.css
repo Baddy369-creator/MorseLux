@@ -379,3 +379,13 @@ body.embedded #translator{margin:0}
 .kbshots figcaption span{color:var(--muted);font-size:14px}
 .kbshots-note{font-size:13px;color:var(--muted);text-align:center;margin:0 0 10px}
 @media (max-width:640px){.kbshots{grid-template-columns:repeat(3,72%);overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px}.kbshots figure{scroll-snap-align:center}}
+
+/* iPhone check 2026-11-07 */
+footer.site a.appstore{display:inline-flex;padding:9px 16px 9px 13px;color:#fff;margin-top:10px}
+footer.site a.appstore:hover{color:#fff}
+.k-set summary{white-space:nowrap}
+.k-set-sum{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.k-set .k-settings label{gap:10px;min-width:0}
+.k-set .k-settings select{min-width:0;width:10.5em;max-width:62%;flex:0 1 auto;text-overflow:ellipsis}
+input[type=range]{height:32px}
+@media (max-width:640px){.embed textarea{font-size:16px}#langhint.inline{margin:10px 0 4px}}

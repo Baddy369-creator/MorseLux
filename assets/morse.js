@@ -394,7 +394,7 @@
     var a = hint.querySelector("a[data-lang=" + want + "]");
     if (!a) return;
     a.hidden = false; a.href = link.href; hint.hidden = false;
-    var tool = document.querySelector("main.tool-page");
+    var tool = document.querySelector("main.tool-page") || ((document.getElementById("translator") || document.getElementById("daily")) && document.querySelector("main"));
     if (tool) { tool.insertBefore(hint, tool.firstChild); hint.classList.add("inline"); }   /* on tools it must not cover the buttons */
     else document.body.classList.add("has-langhint");                 /* leave room at the bottom, so the hint covers nothing */
     hint.querySelector("button").addEventListener("click", function () {
