@@ -869,7 +869,7 @@
       }
       else if (st.level >= KOCHL.length && a >= 0.9) msg = T.allDone || "You know all 40 characters!";
       else msg = (T.again || "Reach 90 % to unlock the next character. Practice:") + " " + Object.keys(session.wrongs).map(function (c) { return "<b>" + c + "</b>"; }).join(" ");
-      $("[data-sum-msg]", summary).innerHTML = msg;
+      $("[data-sum-msg]", summary).innerHTML = msg + ' <button class="btn k-share" type="button" data-act="k-share">📤 ' + (T.shareBtn || "Share") + "</button>";
       session = { right: 0, total: 0, wrongs: {} }; q = null; save();
       playBtn.textContent = "▶ " + (T.startRound || "Next round");
       renderKeys(); render(); renderSlots(); renderBadges();
@@ -885,6 +885,15 @@
       next();
     }
     playBtn.addEventListener("click", onPlay);
+    /* share progress, Wordle-style: no score details, just the level and a link */
+    summary.addEventListener("click", function (e) {
+      if (!e.target.closest("[data-act=k-share]")) return;
+      var n = Math.min(st.level, KOCH.length), bar = "";
+      for (var i = 0; i < 8; i++) bar += st.level >= BADGES[i] ? "🏅" : "▫️";
+      var txt = (T.shareText || "I know {n} of 40 Morse code characters – can you beat me?").replace("{n}", n) + "\n" + bar + "\n" + location.href.split("#")[0];
+      if (navigator.share) { navigator.share({ text: txt }).catch(function () {}); return; }
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { ML.toast(T.shareCopied || "Copied – paste it in any chat"); }, function () {});
+    });
     $("[data-act=k-intro-start]", introBox).addEventListener("click", function () { onPlay(); playBtn.focus({ preventScroll: true }); });
     slots.addEventListener("click", function (e) { if (e.target.closest("[data-act=k-back]")) undo(); });
     function undo() { if (q && !q.done && q.got.length) { q.got.pop(); renderSlots(); } }

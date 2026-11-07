@@ -338,3 +338,18 @@ table.letters code.ascii{font-size:15px;letter-spacing:.12em;color:var(--muted)}
 .embed summary{cursor:pointer;padding:12px 0;font-weight:600;min-height:44px}
 .embed textarea{width:100%;font:13px ui-monospace,monospace;background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:14px}
 body.embedded #translator{margin:0}
+/* daily puzzle */
+.daily{max-width:560px;margin:10px auto 24px;text-align:center}
+.dg-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.dg-code{font-size:26px;margin:18px 0 6px;color:var(--amber);line-height:2}
+.dg-code .m{transform:scale(1.25);transform-origin:center}
+.dg-grid{display:flex;flex-direction:column;gap:6px;align-items:center;margin:12px 0}
+.dg-row{display:flex;gap:6px}
+.dg-c{width:42px;height:46px;display:grid;place-items:center;border-radius:10px;font-weight:800;font-size:20px;border:1px solid var(--line)}
+.dg-c.s1{background:#2e8b57;border-color:#2e8b57}.dg-c.s2{background:#b8860b;border-color:#b8860b}.dg-c.s0{background:#26323d}
+.dg-form{display:flex;gap:8px;justify-content:center;margin-top:8px}
+.dg-form input{flex:1;max-width:260px;min-height:48px;font:700 20px var(--font);letter-spacing:.15em;text-transform:uppercase;text-align:center;background:var(--card2);color:var(--text);border:1px solid var(--line);border-radius:12px}
+.dg-msg{min-height:1.4em;margin:8px 0 0;color:var(--amber)}
+.dg-result{font-size:20px}
+@media (max-width:420px){.dg-c{width:34px;height:40px;font-size:17px}}
+.k-share{margin-left:6px;min-height:36px;padding:6px 12px;font-size:14px}

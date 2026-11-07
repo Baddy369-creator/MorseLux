@@ -1,6 +1,7 @@
 /* Morse Lux website: translator, playback (sound, light, vibration), WAV download, share links. No dependencies. */
 (function () {
   "use strict";
+  var L = window.ML_I18N || {};                                  /* texts in the page language */
 
   var CODE = {
     A: ".-", B: "-...", C: "-.-.", D: "-..", E: ".", F: "..-.", G: "--.", H: "....", I: "..", J: ".---",
@@ -467,8 +468,88 @@
     render();
   }
 
+  /* Morse puzzle of the day: one word per day for everyone, 4 tries, spoiler-free sharing (like Wordle) */
+  function initDaily(box) {
+    var D = L.daily || {}, words = (box.getAttribute("data-words") || "").split(",").filter(Boolean);
+    if (!words.length) return;
+    var start = Date.UTC(2026, 10, 1), now = new Date();
+    var day = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - start) / 864e5);
+    var order = words.map(function (w, i) { var x = Math.sin(i * 12.9898 + 78.233) * 43758.5453; return [x - Math.floor(x), w]; })
+      .sort(function (a, b) { return a[0] - b[0]; }).map(function (p) { return p[1]; });
+    var answer = order[((day % order.length) + order.length) % order.length].toUpperCase(), no = day + 1, MAX = 4;
+    var KEY = "ml-daily-v1:" + (document.documentElement.lang || "en"), st = {};
+    try { st = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+    st.stats = st.stats || { played: 0, won: 0, streak: 0, best: 0, last: -1 };
+    if (st.day !== day) { st.day = day; st.guesses = []; st.done = false; }
+    function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
+    var code = toMorse(answer);
+    box.querySelector("[data-no]").textContent = "#" + no;
+    box.querySelector("[data-code]").innerHTML = shapes(code);
+    box.querySelector("[data-len]").textContent = (D.letters || "{n} letters").replace("{n}", answer.replace(/ /g, "").length);
+    var input = box.querySelector("input"), grid = box.querySelector("[data-grid]"), msg = box.querySelector("[data-msg]");
+    var endBox = box.querySelector("[data-end]");
+    input.maxLength = answer.length;
+    function marks(g) { return answer.split("").map(function (c, i) { return g[i] === c ? 1 : (answer.indexOf(g[i]) >= 0 ? 2 : 0); }); }
+    function render() {
+      grid.innerHTML = st.guesses.map(function (g) {
+        var m = marks(g);
+        return '<div class="dg-row">' + g.split("").map(function (c, i) { return '<span class="dg-c s' + m[i] + '">' + c + "</span>"; }).join("") + "</div>";
+      }).join("");
+      var left = MAX - st.guesses.length;
+      box.querySelector("[data-left]").textContent = st.done ? "" : (D.left || "{n} tries left").replace("{n}", left);
+      endBox.hidden = !st.done;
+      box.querySelector("form").hidden = st.done;
+      if (st.done) {
+        var won = st.guesses[st.guesses.length - 1] === answer;
+        endBox.querySelector("[data-result]").innerHTML = (won ? (D.won || "Solved!") : (D.lost || "The word was")) + " <b>" + answer + "</b>";
+        var s = st.stats;
+        endBox.querySelector("[data-stats]").textContent = (D.stats || "Played {p} · won {w} · streak {s} · best {b}")
+          .replace("{p}", s.played).replace("{w}", s.won).replace("{s}", s.streak).replace("{b}", s.best);
+        tick();
+      }
+    }
+    function shareText() {
+      var won = st.guesses[st.guesses.length - 1] === answer;
+      var rows = st.guesses.map(function (g) { return marks(g).map(function (v) { return v === 1 ? "🟩" : v === 2 ? "🟨" : "⬛"; }).join(""); }).join("\n");
+      return (D.shareTitle || "Morse puzzle") + " #" + no + " " + (won ? st.guesses.length : "X") + "/" + MAX + "\n" + rows + "\n" + location.href.split("#")[0];
+    }
+    function tick() {
+      var t = new Date(), next = new Date(t.getFullYear(), t.getMonth(), t.getDate() + 1), ms = next - t;
+      var h = Math.floor(ms / 36e5), m = Math.floor(ms / 6e4) % 60;
+      endBox.querySelector("[data-next]").textContent = (D.next || "Next puzzle in {h} h {m} min").replace("{h}", h).replace("{m}", m);
+    }
+    box.querySelector("[data-act=d-play]").addEventListener("click", function () { stopAll(); playSound(code, 15, 620); });
+    box.querySelector("[data-act=d-hint]").addEventListener("click", function () {
+      msg.textContent = (D.hintText || "First letter: {c}").replace("{c}", answer[0]);
+    });
+    box.querySelector("form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      if (st.done) return;
+      var g = input.value.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase().replace(/[^A-Z0-9 ]/g, "").trim();
+      if (g.length !== answer.length) { msg.textContent = (D.wrongLen || "The word has {n} letters.").replace("{n}", answer.length); return; }
+      msg.textContent = ""; input.value = "";
+      st.guesses.push(g);
+      var won = g === answer;
+      if (won || st.guesses.length >= MAX) {
+        st.done = true; var s = st.stats; s.played++;
+        if (won) { s.won++; s.streak = s.last === day - 1 ? s.streak + 1 : 1; s.best = Math.max(s.best, s.streak); } else s.streak = 0;
+        s.last = won ? day : s.last;
+      }
+      save(); render();
+    });
+    box.querySelector("[data-act=d-share]").addEventListener("click", function () {
+      var txt = shareText();
+      if (navigator.share) { navigator.share({ text: txt }).catch(function () {}); return; }
+      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { toast(D.copied || "Result copied – paste it anywhere"); }, copyFail);
+      else copyFail();
+    });
+    render();
+  }
+
   document.addEventListener("DOMContentLoaded", function () {
     toTop();
+    var dl = document.getElementById("daily");
+    if (dl) initDaily(dl);
     var kb = document.getElementById("kbdemo");
     if (kb) initKbDemo(kb);
     initNav();
