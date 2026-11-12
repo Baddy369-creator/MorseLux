@@ -12,14 +12,14 @@
     ".": ".-.-.-", ",": "--..--", "?": "..--..", "'": ".----.", "!": "-.-.--", "/": "-..-.", "(": "-.--.",
     ")": "-.--.-", "&": ".-...", ":": "---...", ";": "-.-.-.", "=": "-...-", "+": ".-.-.", "-": "-....-",
     "_": "..--.-", "\"": ".-..-.", "$": "...-..-", "@": ".--.-.",
-    "Ä": ".-.-", "Ö": "---.", "Ü": "..--", "ß": "...--..", "Ñ": "--.--", "É": "..-..", "À": ".--.-", "È": ".-..-"
+    "Ä": ".-.-", "Ö": "---.", "Ü": "..--", "ß": "...--..", "Ñ": "--.--", "É": "..-..", "À": ".--.-", "È": ".-..-", "Ç": "-.-..", "Ğ": "--.-.", "Ş": ".--.."
   };
   var DECODE = {};
   Object.keys(CODE).forEach(function (k) { if (!DECODE[CODE[k]]) DECODE[CODE[k]] = k; });
-  var FOLD = { "Å": "À", "Ø": "Ö", "Œ": "OE", "Æ": "AE", "Ã": "A", "Õ": "O", "Ý": "Y", "Ì": "I", "Ò": "O", "Ù": "U", "Á": "A", "Í": "I", "Ó": "O", "Ú": "U", "Â": "A", "Ê": "E", "Î": "I", "Ô": "O", "Û": "U", "Ç": "C", "Ë": "E", "Ï": "I" };
+  var FOLD = { "Å": "À", "Ø": "Ö", "Œ": "OE", "Æ": "AE", "Ã": "A", "Õ": "O", "Ý": "Y", "Ì": "I", "Ò": "O", "Ù": "U", "Á": "A", "Í": "I", "Ó": "O", "Ú": "U", "Â": "A", "Ê": "E", "Î": "I", "Ô": "O", "Û": "U", "Ë": "E", "Ï": "I", "İ": "I" };
 
   /* upper case, but ß stays ß (JavaScript would make SS of it) */
-  function up(s) { return s.replace(/ß/g, "\u0001").toUpperCase().replace(/\u0001|ẞ/g, "ß"); }
+  function up(s) { return s.replace(/ß/g, "\u0001").replace(/ı/g, "I").toUpperCase().replace(/\u0001|ẞ/g, "ß"); }
 
   function toMorse(text) {
     return up(text).split(/\s+/).filter(Boolean).map(function (word) {
@@ -458,9 +458,8 @@
     var a = hint.querySelector("a[data-lang=" + want + "]");
     if (!a) return;
     a.hidden = false; a.href = link.href; hint.hidden = false;
-    var tool = document.querySelector("main.tool-page") || ((document.getElementById("translator") || document.getElementById("daily")) && document.querySelector("main"));
-    if (tool) { tool.insertBefore(hint, tool.firstChild); hint.classList.add("inline"); }   /* on tools it must not cover the buttons */
-    else document.body.classList.add("has-langhint");                 /* leave room at the bottom, so the hint covers nothing */
+    var mainEl = document.querySelector("main");                     /* always at the top of the page, so it covers nothing */
+    if (mainEl) { mainEl.insertBefore(hint, mainEl.firstChild); hint.classList.add("inline"); }
     hint.querySelector("button").addEventListener("click", function () {
       hint.hidden = true; document.body.classList.remove("has-langhint");
       try { localStorage.setItem("ml-langhint", "1"); } catch (e) {}

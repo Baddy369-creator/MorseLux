@@ -1,6 +1,6 @@
 /* MorseLux offline helper: network first (so updates always win), after 3.5 s or without a network the saved copy,
    and for pages never opened before a small offline page */
-var CACHE = "ml-6b33e2601e2026-11-12", CORE = ["/offline.html", "/assets/style.css", "/assets/morse.js", "/assets/tools.js", "/assets/icon-192.png", "/", "/de/", "/es/"];
+var CACHE = "ml-6f3716cd672026-11-12", CORE = ["/offline.html", "/assets/style.css", "/assets/morse.js", "/assets/tools.js", "/assets/icon-192.png", "/", "/de/", "/es/", "/pt/"];
 self.addEventListener("install", function (e) {
   self.skipWaiting();
   e.waitUntil(caches.open(CACHE).then(function (c) { return Promise.all(CORE.map(function (u) { return c.add(u).catch(function () {}); })); }));
