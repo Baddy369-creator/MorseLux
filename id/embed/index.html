@@ -1,0 +1,31 @@
+<!doctype html><html lang="id"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Penerjemah sandi Morse · MorseLux</title><meta name="robots" content="noindex,follow">
+<link rel="stylesheet" href="../../assets/style.css?v=6f0adfe2"><script>window.ML_I18N={"empty": "Ketik sesuatu dulu", "copied": "Sandi Morse disalin", "linkCopied": "Tautan disalin — kirim ke temanmu", "shareText": "Bisakah kamu memecahkan pesan sandi Morse ini?", "noVibrate": "Getaran tidak berfungsi di browser ini (berfungsi di Android dengan Chrome)", "copyFail": "Tidak bisa menyalin di sini", "noVibrateIOS": "Getaran tidak berfungsi di browser iPhone – di aplikasi MorseLux (gratis) bisa.", "android": "📱 Aplikasi MorseLux hanya tersedia untuk iPhone. Semua alat di situs ini bisa dipakai gratis di Android-mu.", "androidKb": "📱 Keyboard Morse hanya tersedia untuk iPhone. Di Android, Gboard punya tata letak Morse – atau tulis di penerjemah Morse gratis lalu salin kodenya ke obrolan mana pun.", "androidShort": "📱 Hanya tersedia untuk iPhone", "tooLong": "Terlalu panjang untuk diputar – pendekkan teksnya (maksimal 5 menit)", "noCode": "Tidak ada sandi Morse untuk: {c}", "lightOn": "Sinyal cahaya sedang berjalan – ketuk atau tekan Esc untuk berhenti"};</script>
+<script src="../../assets/morse.js?v=8c4fd869" defer></script><style>body{background:transparent;padding:0;margin:0}.embed-foot{text-align:center;font-size:13px;margin:8px 0 0}</style></head>
+<body class="embedded" data-home="https://morselux.com/id/"><div id="secret" hidden><p class="eyebrow">Pesan rahasia</p><h2 style="margin-top:6px">Seseorang mengirimimu pesan dalam sandi Morse. Bisakah kamu memecahkannya?</h2>
+<p class="code" data-secret-morse></p><p class="controls"><button class="btn" type="button" data-act="secret-play">🔊 Putar suara</button><button class="btn primary" type="button" data-act="reveal">Tampilkan jawaban</button></p>
+<div class="answer"><p>Isi pesannya: <span data-secret-answer></span></p><p class="muted">Tulis balasanmu di bawah dan kirim kembali sebagai pesan rahasia.</p></div></div>
+<section id="translator" class="card" aria-label="Penerjemah sandi Morse">
+<div class="tr-grid">
+ <div><label for="t-text">Teks</label><textarea id="t-text" placeholder="Ketik atau tempel teks… (Morse yang ditempel di sini diterjemahkan otomatis)" autocomplete="off" spellcheck="false"></textarea></div>
+ <div><label for="t-morse">Sandi Morse</label><textarea id="t-morse" placeholder="·– atau .- — huruf dipisah spasi, kata dipisah /" autocomplete="off" spellcheck="false"></textarea>
+  <div class="keypad noprint"><button class="btn" type="button" data-key="." aria-label="titik"><span class="m"><i class="md"></i></span></button><button class="btn" type="button" data-key="-" aria-label="garis"><span class="m"><i class="mh"></i></span></button><button class="btn" type="button" data-key=" ">spasi</button><button class="btn" type="button" data-key=" / ">/</button><button class="btn" type="button" data-key="back" aria-label="Hapus">⌫</button></div>
+ </div>
+</div>
+<div class="controls">
+ <button class="btn primary" type="button" data-act="sound">🔊 Putar suara</button>
+ <button class="btn" type="button" data-act="stop">■ Berhenti</button>
+ <button class="btn" type="button" data-act="copy">⧉ Salin Morse</button>
+ <button class="btn" type="button" data-act="share">🔗 Kirim sebagai pesan rahasia</button>
+</div>
+<div class="controls sec">
+ <button class="btn" type="button" data-act="light">💡 Sinyal cahaya</button>
+ <button class="btn" type="button" data-act="vibrate">📳 Getar</button>
+ <button class="btn" type="button" data-act="wav">⬇ Simpan audio</button>
+ <button class="btn" type="button" data-act="clear">✕ Kosongkan</button>
+</div>
+<div class="sliders"><label>Kecepatan <input id="t-wpm" type="range" min="5" max="35" value="15"> <span><span id="t-wpm-out">15</span> kpm</span></label>
+<label>Nada <input id="t-freq" type="range" min="400" max="900" step="10" value="600"> <span><span id="t-freq-out">600</span> Hz</span></label></div>
+</section>
+<p class="note kb-tip" hidden>⌨️ Tips: dengan <a href="https://morselux.com/id/keyboard-morse/">keyboard Morse untuk iPhone</a> kamu bisa menulis Morse langsung di WhatsApp dan aplikasi lain, tanpa menyalin.</p>
+<div id="flash" aria-hidden="true"><i class="lamp"></i><p class="flash-note" hidden>Perhatian: cahaya berkedip. Jika kamu sensitif terhadap cahaya berkedip, jangan melihat layar.</p><span>Ketuk layar atau tekan Esc untuk berhenti</span></div><p class="embed-foot"><a href="https://morselux.com/id/" target="_blank" rel="noopener">Penerjemah sandi Morse · morselux.com</a></p><div id="toast" role="status" aria-live="polite"></div></body></html>

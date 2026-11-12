@@ -1,0 +1,31 @@
+<!doctype html><html lang="it"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Traduttore codice Morse · MorseLux</title><meta name="robots" content="noindex,follow">
+<link rel="stylesheet" href="../../assets/style.css?v=6f0adfe2"><script>window.ML_I18N={"empty": "Prima scrivi qualcosa", "copied": "Codice Morse copiato", "linkCopied": "Link copiato — mandalo a un amico", "shareText": "Riesci a decifrare questo messaggio in codice Morse?", "noVibrate": "La vibrazione non funziona in questo browser (funziona su Android con Chrome)", "copyFail": "Qui non è possibile copiare", "noVibrateIOS": "La vibrazione non funziona nel browser dell'iPhone – nell'app MorseLux (gratuita) sì.", "android": "📱 L'app MorseLux esiste solo per iPhone. Tutti gli strumenti di questo sito funzionano gratis sul tuo Android.", "androidKb": "📱 La tastiera Morse esiste solo per iPhone. Su Android, Gboard ha un layout Morse – oppure scrivi nel traduttore Morse gratuito e copia il codice in qualsiasi chat.", "androidShort": "📱 Disponibile solo per iPhone", "tooLong": "Troppo lungo da riprodurre – accorcia il testo (massimo 5 minuti)", "noCode": "Nessun codice Morse per: {c}", "lightOn": "Segnale luminoso in corso – tocca lo schermo o premi Esc per fermare"};</script>
+<script src="../../assets/morse.js?v=8c4fd869" defer></script><style>body{background:transparent;padding:0;margin:0}.embed-foot{text-align:center;font-size:13px;margin:8px 0 0}</style></head>
+<body class="embedded" data-home="https://morselux.com/it/"><div id="secret" hidden><p class="eyebrow">Messaggio segreto</p><h2 style="margin-top:6px">Qualcuno ti ha mandato un messaggio in codice Morse. Riesci a decifrarlo?</h2>
+<p class="code" data-secret-morse></p><p class="controls"><button class="btn" type="button" data-act="secret-play">🔊 Riproduci suono</button><button class="btn primary" type="button" data-act="reveal">Mostra la risposta</button></p>
+<div class="answer"><p>Il messaggio dice: <span data-secret-answer></span></p><p class="muted">Scrivi la tua risposta qui sotto e rimandala come messaggio segreto.</p></div></div>
+<section id="translator" class="card" aria-label="Traduttore codice Morse">
+<div class="tr-grid">
+ <div><label for="t-text">Testo</label><textarea id="t-text" placeholder="Scrivi o incolla un testo… (il Morse incollato qui viene tradotto in automatico)" autocomplete="off" spellcheck="false"></textarea></div>
+ <div><label for="t-morse">Codice Morse</label><textarea id="t-morse" placeholder="·– oppure .- — lettere separate da uno spazio, parole da /" autocomplete="off" spellcheck="false"></textarea>
+  <div class="keypad noprint"><button class="btn" type="button" data-key="." aria-label="punto"><span class="m"><i class="md"></i></span></button><button class="btn" type="button" data-key="-" aria-label="linea"><span class="m"><i class="mh"></i></span></button><button class="btn" type="button" data-key=" ">spazio</button><button class="btn" type="button" data-key=" / ">/</button><button class="btn" type="button" data-key="back" aria-label="Cancella">⌫</button></div>
+ </div>
+</div>
+<div class="controls">
+ <button class="btn primary" type="button" data-act="sound">🔊 Riproduci suono</button>
+ <button class="btn" type="button" data-act="stop">■ Ferma</button>
+ <button class="btn" type="button" data-act="copy">⧉ Copia Morse</button>
+ <button class="btn" type="button" data-act="share">🔗 Invia come messaggio segreto</button>
+</div>
+<div class="controls sec">
+ <button class="btn" type="button" data-act="light">💡 Segnale luminoso</button>
+ <button class="btn" type="button" data-act="vibrate">📳 Vibra</button>
+ <button class="btn" type="button" data-act="wav">⬇ Salva audio</button>
+ <button class="btn" type="button" data-act="clear">✕ Svuota</button>
+</div>
+<div class="sliders"><label>Velocità <input id="t-wpm" type="range" min="5" max="35" value="15"> <span><span id="t-wpm-out">15</span> parole/min</span></label>
+<label>Tono <input id="t-freq" type="range" min="400" max="900" step="10" value="600"> <span><span id="t-freq-out">600</span> Hz</span></label></div>
+</section>
+<p class="note kb-tip" hidden>⌨️ Consiglio: con la <a href="https://morselux.com/it/tastiera-morse/">tastiera Morse per iPhone</a> scrivi in Morse direttamente su WhatsApp e nelle altre app, senza copiare.</p>
+<div id="flash" aria-hidden="true"><i class="lamp"></i><p class="flash-note" hidden>Attenzione: luce lampeggiante. Se sei sensibile alle luci lampeggianti, non guardare lo schermo.</p><span>Tocca lo schermo o premi Esc per fermare</span></div><p class="embed-foot"><a href="https://morselux.com/it/" target="_blank" rel="noopener">Traduttore codice Morse · morselux.com</a></p><div id="toast" role="status" aria-live="polite"></div></body></html>

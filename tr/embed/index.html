@@ -1,0 +1,31 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mors alfabesi çevirici · MorseLux</title><meta name="robots" content="noindex,follow">
+<link rel="stylesheet" href="../../assets/style.css?v=6f0adfe2"><script>window.ML_I18N={"empty": "Önce bir şey yazın", "copied": "Mors kodu kopyalandı", "linkCopied": "Bağlantı kopyalandı — bir arkadaşınıza gönderin", "shareText": "Mors alfabesiyle yazılmış bu mesajı çözebilir misin?", "noVibrate": "Titreşim bu tarayıcıda çalışmıyor (Android'de Chrome ile çalışır)", "copyFail": "Burada kopyalanamıyor", "noVibrateIOS": "Titreşim iPhone tarayıcısında çalışmıyor – ücretsiz MorseLux uygulamasında çalışır.", "android": "📱 MorseLux uygulaması yalnızca iPhone için var. Bu sitedeki bütün araçlar Android telefonunuzda ücretsiz çalışır.", "androidKb": "📱 Mors klavyesi yalnızca iPhone için var. Android'de Gboard'un bir Mors düzeni bulunur – ya da ücretsiz Mors çeviricide yazıp kodu istediğiniz sohbete kopyalayın.", "androidShort": "📱 Yalnızca iPhone için", "tooLong": "Çalmak için fazla uzun – metni kısaltın (en fazla 5 dakika)", "noCode": "Şunun Mors kodu yok: {c}", "lightOn": "Işık sinyali sürüyor – durdurmak için dokunun veya Esc'ye basın"};</script>
+<script src="../../assets/morse.js?v=8c4fd869" defer></script><style>body{background:transparent;padding:0;margin:0}.embed-foot{text-align:center;font-size:13px;margin:8px 0 0}</style></head>
+<body class="embedded" data-home="https://morselux.com/tr/"><div id="secret" hidden><p class="eyebrow">Gizli mesaj</p><h2 style="margin-top:6px">Biri size Mors alfabesiyle bir mesaj gönderdi. Çözebilir misiniz?</h2>
+<p class="code" data-secret-morse></p><p class="controls"><button class="btn" type="button" data-act="secret-play">🔊 Sesi çal</button><button class="btn primary" type="button" data-act="reveal">Cevabı göster</button></p>
+<div class="answer"><p>Mesajda şu yazıyor: <span data-secret-answer></span></p><p class="muted">Cevabınızı aşağıya yazın ve gizli mesaj olarak geri gönderin.</p></div></div>
+<section id="translator" class="card" aria-label="Mors alfabesi çevirici">
+<div class="tr-grid">
+ <div><label for="t-text">Metin</label><textarea id="t-text" placeholder="Bir metin yazın veya yapıştırın… (buraya yapıştırılan Mors kodu otomatik çevrilir)" autocomplete="off" spellcheck="false"></textarea></div>
+ <div><label for="t-morse">Mors kodu</label><textarea id="t-morse" placeholder="·– veya .- — harfler boşlukla, kelimeler / ile ayrılır" autocomplete="off" spellcheck="false"></textarea>
+  <div class="keypad noprint"><button class="btn" type="button" data-key="." aria-label="nokta"><span class="m"><i class="md"></i></span></button><button class="btn" type="button" data-key="-" aria-label="çizgi"><span class="m"><i class="mh"></i></span></button><button class="btn" type="button" data-key=" ">boşluk</button><button class="btn" type="button" data-key=" / ">/</button><button class="btn" type="button" data-key="back" aria-label="Sil">⌫</button></div>
+ </div>
+</div>
+<div class="controls">
+ <button class="btn primary" type="button" data-act="sound">🔊 Sesi çal</button>
+ <button class="btn" type="button" data-act="stop">■ Durdur</button>
+ <button class="btn" type="button" data-act="copy">⧉ Mors'u kopyala</button>
+ <button class="btn" type="button" data-act="share">🔗 Gizli mesaj olarak gönder</button>
+</div>
+<div class="controls sec">
+ <button class="btn" type="button" data-act="light">💡 Işık sinyali</button>
+ <button class="btn" type="button" data-act="vibrate">📳 Titret</button>
+ <button class="btn" type="button" data-act="wav">⬇ Sesi kaydet</button>
+ <button class="btn" type="button" data-act="clear">✕ Temizle</button>
+</div>
+<div class="sliders"><label>Hız <input id="t-wpm" type="range" min="5" max="35" value="15"> <span><span id="t-wpm-out">15</span> kelime/dk</span></label>
+<label>Ton <input id="t-freq" type="range" min="400" max="900" step="10" value="600"> <span><span id="t-freq-out">600</span> Hz</span></label></div>
+</section>
+<p class="note kb-tip" hidden>⌨️ İpucu: <a href="https://morselux.com/tr/mors-klavyesi/">iPhone için Mors klavyesi</a> ile WhatsApp'ta ve diğer uygulamalarda kopyalamadan doğrudan Mors yazarsınız.</p>
+<div id="flash" aria-hidden="true"><i class="lamp"></i><p class="flash-note" hidden>Dikkat: yanıp sönen ışık. Yanıp sönen ışıklara duyarlıysanız ekrana bakmayın.</p><span>Durdurmak için ekrana dokunun veya Esc'ye basın</span></div><p class="embed-foot"><a href="https://morselux.com/tr/" target="_blank" rel="noopener">Mors alfabesi çevirici · morselux.com</a></p><div id="toast" role="status" aria-live="polite"></div></body></html>
