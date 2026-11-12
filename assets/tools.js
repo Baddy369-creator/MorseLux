@@ -1,4 +1,4 @@
-/* Morse Lux website: audio decoder (microphone and audio files) and Morse trainer. No dependencies, runs in the browser only. */
+/* MorseLux website: audio decoder (microphone and audio files) and Morse trainer. No dependencies, runs in the browser only. */
 (function (root) {
   "use strict";
 
@@ -465,7 +465,7 @@
     var out = $("#d-text", box), morseOut = $("#d-morse", box), status = $("#d-status", box), limitBox = $("#d-limit", box);
     var meter = $("#d-meter i", box), tape = $("#d-tape", box), stats = $("#d-stats", box), freeInfo = $("#d-free", box);
     var micBtn = $("[data-act=d-mic]", box), demoBtn = $("[data-act=d-demo]", box), fileIn = $("#d-file", box);
-    var FREE_MS = 30000, LIMIT_KEY = "ml-mic-v1";
+    var FREE_MS = 1e15 /* no daily limit any more */, LIMIT_KEY = "ml-mic-v1";
     var job = 0, mode = "", dec = null, ac = null, tap = null, stream = null, src = null, raf = 0;
     var history = [], lastShown = "", lastUi = 0, lastTape = 0, micStart = 0, stoppedAt = 0;
     var tg = tape.getContext("2d");
@@ -477,6 +477,8 @@
     function addUsed(ms) { store(LIMIT_KEY, { day: today(), ms: Math.min(FREE_MS, usedMs() + ms) }); }
     function leftMs() { return Math.max(0, FREE_MS - usedMs() - (mode === "mic" && micStart ? Date.now() - micStart : 0)); }
     function showFree() {
+      if (freeInfo) freeInfo.hidden = true;
+      if (FREE_MS > 1e12) return;
       var left = Math.ceil(leftMs() / 1000);
       micBtn.classList.toggle("spent", left <= 0 && mode !== "mic");
       if (left <= 0 && mode !== "mic") micBtn.textContent = D.micTomorrow || "🎙 Microphone: again tomorrow";
@@ -540,7 +542,7 @@
     function finishDec() {
       if (!dec) return;
       var r = dec.finish(); out.value = r.text; morseOut.innerHTML = ML.shapes(r.morse);
-      stats.innerHTML = statsHtml(r.wpm, 0); lastShown = "";
+      stats.innerHTML = r.text ? statsHtml(r.wpm, 0) : statsHtml(0, 0); lastShown = "";
       dec = null;
     }
     function stop(msg) {
@@ -556,7 +558,7 @@
       ac.onstatechange = function () {                           /* a phone call or the lock screen interrupts the sound */
         if (ac.state === "interrupted" && (mode === "mic" || mode === "demo")) stop(D.interrupted || "Interrupted. Start again.");
       };
-      history = []; out.value = ""; morseOut.innerHTML = ""; lastShown = ""; lastTape = 0;
+      history = []; out.value = ""; morseOut.innerHTML = ""; lastShown = ""; lastTape = 0; stats.innerHTML = statsHtml(0, 0);
       mode = kind; box.setAttribute("data-running", kind);
       return job;
     }
@@ -576,7 +578,7 @@
     function bringIntoView() {
       if (window.innerWidth > 640) return;
       var head = document.querySelector("header"), h = head ? head.getBoundingClientRect().height : 0;
-      window.scrollTo({ top: Math.max(0, micBtn.getBoundingClientRect().top + window.scrollY - h - 10), behavior: "smooth" });
+      window.scrollTo({ top: Math.max(0, micBtn.getBoundingClientRect().top + window.scrollY - h - 10), behavior: (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) ? "auto" : "smooth" });
     }
     function limitReached() {
       stop(D.limitStatus || "Your free microphone time for today is used up.");
@@ -797,7 +799,7 @@
       var k = keys.getBoundingClientRect(), main = $(".k-main", box).getBoundingClientRect();
       if (k.bottom <= window.innerHeight && main.top >= 0) return;
       var head = document.querySelector("header"), h = head ? head.getBoundingClientRect().height : 0;
-      window.scrollTo({ top: Math.max(0, main.top + window.scrollY - h - 8), behavior: "smooth" });
+      window.scrollTo({ top: Math.max(0, main.top + window.scrollY - h - 8), behavior: (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) ? "auto" : "smooth" });
     }
     function renderSlots() {
       if (!q || q.list.length < 2) { slots.hidden = true; return; }
@@ -840,7 +842,7 @@
       introBox.hidden = false;
       $("[data-act=k-intro-start]", introBox).hidden = !!noStart;  /* after a round the main button already says "Next round" */
       playBtn.hidden = !noStart;                                  /* never two Start buttons at once */
-      introBox.setAttribute("data-chars", list.join(""));
+      introBox.setAttribute("data-chars", list.join("\u0001"));
       $("[data-intro-title]", introBox).textContent = title;
       $("[data-intro-list]", introBox).innerHTML = list.map(function (c) {
         return '<span class="kintro"><b>' + label(c) + "</b>" + ML.shapes(code(c)) + "</span>";
@@ -868,7 +870,7 @@
         if (bi >= 0) msg += '<span class="k-newbadge">🏅 ' + (T.newBadge || "New badge:") + " <b>" + ((T.badges || [])[bi] || st.level) + "</b></span>";
       }
       else if (st.level >= KOCHL.length && a >= 0.9) msg = T.allDone || "You know all 40 characters!";
-      else msg = (T.again || "Reach 90 % to unlock the next character. Practice:") + " " + Object.keys(session.wrongs).map(function (c) { return "<b>" + c + "</b>"; }).join(" ");
+      else msg = (T.again || "Reach 90 % to unlock the next character. Practice:") + " " + Object.keys(session.wrongs).map(function (c) { return "<b>" + label(c) + "</b>"; }).join(" ");
       $("[data-sum-msg]", summary).innerHTML = msg + ' <button class="btn k-share" type="button" data-act="k-share">📤 ' + (T.shareBtn || "Share") + "</button>";
       session = { right: 0, total: 0, wrongs: {} }; q = null; save();
       playBtn.textContent = "▶ " + (T.startRound || "Next round");
@@ -877,7 +879,7 @@
       if (up) intro([chars()[st.level - 1]], T.newChar || "New character", true, true);
       /* the result, the new character and "Next round" first; the App Store box comes below */
       var sr = summary.getBoundingClientRect(), head = document.querySelector("header"), h = head ? head.getBoundingClientRect().height : 0;
-      if (sr.top < h || sr.top > window.innerHeight * 0.5) window.scrollTo({ top: Math.max(0, sr.top + window.scrollY - h - 8), behavior: "smooth" });
+      if (sr.top < h || sr.top > window.innerHeight * 0.5) window.scrollTo({ top: Math.max(0, sr.top + window.scrollY - h - 8), behavior: (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) ? "auto" : "smooth" });
     }
 
     function onPlay() {
@@ -928,7 +930,7 @@
       playBtn.textContent = "▶ " + (T.startBtn || "Start"); box.setAttribute("data-state", "idle");
       renderKeys(); render(); renderSlots(); renderBadges(); intro(["K", "M"], T.firstChars || "Your first characters", false);
     });
-    $("[data-act=k-intro-play]", introBox).addEventListener("click", function () { playSeq((introBox.getAttribute("data-chars") || "").split("")); });
+    $("[data-act=k-intro-play]", introBox).addEventListener("click", function () { playSeq((introBox.getAttribute("data-chars") || "").split("\u0001").filter(Boolean)); });
     renderKeys(); render(); renderSlots(); renderBadges();
     if (st.level === 2 && !Object.keys(st.stats).length) intro(["K", "M"], T.firstChars || "Your first characters", false);
     else { introBox.hidden = true; playBtn.hidden = false; }

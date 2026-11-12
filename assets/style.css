@@ -393,3 +393,58 @@ input[type=range]{height:32px}
 .android-note{background:rgba(255,190,80,.08);border:1px solid rgba(255,190,80,.35);border-radius:12px;padding:10px 13px;margin:8px 0 0;font-size:14px;line-height:1.45;color:var(--text);max-width:520px}
 .cta .android-note{grid-column:1/-1}
 footer.site .android-note{font-size:13px;color:var(--muted)}
+.alpha-img{margin:22px 0;max-width:620px}
+.alpha-img img{width:100%;height:auto;border-radius:16px;border:1px solid rgba(255,255,255,.08);display:block}
+.alpha-img figcaption{font-size:14px;color:var(--muted);margin-top:8px;line-height:1.5}
+.alpha-img figcaption a{white-space:nowrap}
+
+/* ===== round of 12 Nov 2026 ===== */
+/* language menu: a button that opens the list of languages */
+.langmenu{position:relative;margin-left:auto}
+.langmenu summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:6px;min-height:44px;padding:0 12px;border:1px solid var(--line);border-radius:12px;color:var(--text);font-weight:600;font-size:14px;background:var(--card2);white-space:nowrap}
+.langmenu summary::-webkit-details-marker{display:none}
+.langmenu summary::after{content:"▾";color:var(--muted);font-size:12px}
+.langmenu[open] summary{border-color:var(--amber)}
+.langlist{position:absolute;right:0;top:calc(100% + 6px);z-index:40;min-width:190px;max-height:70vh;overflow:auto;background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:6px;box-shadow:0 14px 40px rgba(0,0,0,.5);display:grid}
+.langlist a{display:flex;align-items:center;min-height:44px;padding:0 12px;border-radius:9px;color:var(--text);text-decoration:none;font-weight:600;font-size:15px}
+.langlist a:hover{background:rgba(255,255,255,.06)}
+.langlist a[aria-current]{color:#1b1206;background:var(--amber)}
+@media (max-width:820px){.langmenu{margin-left:auto}}
+/* toast: one line when it fits, centred */
+#toast{width:max-content;max-width:calc(100vw - 32px);text-align:center}
+/* puzzle input never wider than the card */
+.dg-form{max-width:100%}.dg-form input{min-width:0;width:100%}.dg-form button{flex:none}
+/* app card: icon and title in one row, text full width, a picture of the keyboard on wide screens */
+.cta{grid-template-columns:1fr auto;grid-template-areas:"head shot" "text shot" "store shot";gap:10px 26px;overflow:hidden}
+.cta .cta-head{grid-area:head;display:flex;align-items:center;gap:14px}
+.cta .cta-head img{width:60px;height:60px;border-radius:14px}
+.cta .cta-head h2{margin:0;font-size:22px}
+.cta .cta-text{grid-area:text}
+.cta .appstore,.cta .android-note{grid-area:store;justify-self:start;grid-column:auto}
+.cta img.cta-shot{grid-area:shot;width:150px;height:auto;border-radius:18px;border:4px solid #1f2a33;box-shadow:0 10px 30px rgba(0,0,0,.45);margin:-4px 0 -70px;align-self:start}
+@media (max-width:640px){.cta{grid-template-columns:1fr;grid-template-areas:"head" "text" "store";padding:18px}.cta img.cta-shot{display:none}.cta .appstore{grid-column:auto}}
+/* translator: main actions big, the rest smaller */
+.controls.sec{margin-top:8px}.controls.sec .btn{padding:8px 11px;font-size:13.5px;background:transparent;color:var(--muted)}
+.t-note{color:var(--amber);margin:6px 2px 0}
+/* SOS light: the whole screen lights up */
+#flash.full .lamp{display:none}#flash.full.on{background:#fff6dc}
+.pt{margin-left:1px}
+.wtools{margin-top:8px}.wfact{font-size:17px}
+main>.updated{margin:34px 0 0;text-align:center}
+/* app names are a list, not buttons */
+.appchips span{border:0;background:none;padding:2px 0;color:var(--muted)}.appchips span+span::before{content:"· ";margin-right:8px}.appchips{gap:2px 8px}
+.kbdots{display:none;justify-content:center;gap:7px;margin:2px 0 8px}.kbdots i{width:7px;height:7px;border-radius:50%;background:var(--line)}.kbdots i.on{background:var(--amber)}
+@media (max-width:640px){.kbdots{display:flex}}
+/* small phones */
+@media (max-width:640px){#langhint.inline{padding:4px 6px 4px 12px;font-size:14px}#langhint.inline button{min-height:36px}
+ .k-set summary{flex-wrap:wrap;white-space:normal}.k-set-sum{flex-basis:100%;order:3;font-size:13px}}
+details.fold>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:600;color:var(--amber)}
+.legal p{max-width:640px}
+details.langmenu{border:0;background:none;padding:0;margin:0 0 0 auto;border-radius:0}
+.langmenu summary{padding:0 10px 0 12px}.langmenu summary::after{margin-left:2px;transform:none}
+.langmenu summary::before{content:none}
+@media (max-width:350px){.langmenu summary span{display:none}}
+.keypad .btn{white-space:nowrap}
+.langmenu summary::after,.langmenu[open] summary::after{content:"▾";position:static;font-size:12px;color:var(--muted)}
+.langmenu summary{padding-right:10px}
+details.fold{background:none;border:0;padding:0}

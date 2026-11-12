@@ -16,16 +16,29 @@
   };
   var DECODE = {};
   Object.keys(CODE).forEach(function (k) { if (!DECODE[CODE[k]]) DECODE[CODE[k]] = k; });
-  var FOLD = { "Á": "A", "Í": "I", "Ó": "O", "Ú": "U", "Â": "A", "Ê": "E", "Î": "I", "Ô": "O", "Û": "U", "Ç": "C", "Ë": "E", "Ï": "I" };
+  var FOLD = { "Å": "À", "Ø": "Ö", "Œ": "OE", "Æ": "AE", "Ã": "A", "Õ": "O", "Ý": "Y", "Ì": "I", "Ò": "O", "Ù": "U", "Á": "A", "Í": "I", "Ó": "O", "Ú": "U", "Â": "A", "Ê": "E", "Î": "I", "Ô": "O", "Û": "U", "Ç": "C", "Ë": "E", "Ï": "I" };
+
+  /* upper case, but ß stays ß (JavaScript would make SS of it) */
+  function up(s) { return s.replace(/ß/g, "\u0001").toUpperCase().replace(/\u0001|ẞ/g, "ß"); }
 
   function toMorse(text) {
-    return text.toUpperCase().replace(/ẞ/g, "ß").split(/\s+/).filter(Boolean).map(function (word) {
+    return up(text).split(/\s+/).filter(Boolean).map(function (word) {
       return Array.from(word).map(function (ch) {
         if (CODE[ch]) return CODE[ch];
-        if (FOLD[ch]) return CODE[FOLD[ch]];
+        if (FOLD[ch]) return Array.from(FOLD[ch]).map(function (c) { return CODE[c]; }).join(" ");
         return "";
       }).filter(Boolean).join(" ");
     }).filter(Boolean).join(" / ");
+  }
+
+  /* characters of a text that have no Morse code (shown as a note, so nothing vanishes silently) */
+  function unknownChars(text) {
+    var seen = {}, out = [];
+    Array.from(up(text)).forEach(function (ch) {
+      if (/\s/.test(ch) || CODE[ch] || FOLD[ch] || /[¿¡\u200d\ufe0f]/.test(ch) || seen[ch]) return;
+      seen[ch] = 1; out.push(ch);
+    });
+    return out;
   }
 
   /* How Morse is shown: round dot and dash on one line, like in the app. Copies stay as .- */
@@ -54,7 +67,7 @@
 
   function fromMorse(morse) {
     return normalizeMorse(morse).trim().split(/\s*\/\s*|\s{3,}/).map(function (word) {
-      return word.trim().split(/\s+/).map(function (sym) { return sym ? (DECODE[sym] || "�") : ""; }).join("");
+      return word.trim().split(/\s+/).map(function (sym) { return sym ? (DECODE[sym] || "?") : ""; }).join("");
     }).join(" ");
   }
 
@@ -82,6 +95,17 @@
   /* ---------- Sound ---------- */
   var ctx = null, active = [], timers = [];
   function copyFail() { toast(L.copyFail || "Copying is not possible here"); }
+  function copyText(text, okMsg) {
+    if (!navigator.clipboard || !navigator.clipboard.writeText) { copyFail(); return; }
+    navigator.clipboard.writeText(text).then(function () { toast(okMsg); }, copyFail);
+  }
+  function say(msg) {                                             /* for screen readers only */
+    var r = document.getElementById("sr-live");
+    if (!r) { r = document.createElement("div"); r.id = "sr-live"; r.className = "sr-only"; r.setAttribute("aria-live", "assertive"); document.body.appendChild(r); }
+    r.textContent = msg;
+  }
+  var MAX_MS = 300000;                                            /* longest sound or light signal: 5 minutes */
+  function tooLong(m, wpm) { if (timeline(m, wpm).total > MAX_MS) { toast(L.tooLong || "Too long to play – shorten the text (max. 5 minutes)"); return true; } return false; }
 
   function audio() {
     /* iPhone: play the sound even when the ring/silent switch is on (Safari 16.4+) */
@@ -96,7 +120,7 @@
     timers.forEach(clearTimeout);
     timers = [];
     var f = document.getElementById("flash");
-    if (f) f.classList.remove("on", "show");
+    if (f) f.classList.remove("on", "show", "full");
     if (navigator.vibrate) navigator.vibrate(0);
     document.querySelectorAll("[data-playing]").forEach(function (b) { b.removeAttribute("data-playing"); });
   }
@@ -117,13 +141,16 @@
   }
   /* Light: a lamp in the middle of a dark screen, never faster than 7 WPM, so it blinks at most about
      3 times per second (safe for people who are sensitive to flashing light). The first time, a short note comes first. */
-  function playLight(morse, wpm) {
+  function playLight(morse, wpm, full) {
     var f = document.getElementById("flash");
     if (!f) return 0;
     var tl = timeline(morse, Math.min(wpm, 7)), lead = 80, note = f.querySelector(".flash-note"), seen = false;
+    var t = document.getElementById("toast"); if (t) t.classList.remove("show");
+    f.classList.toggle("full", !!full);
+    say(L.lightOn || "Light signal running – tap or press Escape to stop");
     try { seen = localStorage.getItem("ml-light-ok") === "1"; localStorage.setItem("ml-light-ok", "1"); } catch (e) {}
     if (note) note.hidden = seen;
-    if (!seen) lead = 3000;
+    if (!seen) lead = full ? 1500 : 3000;
     f.classList.add("show");
     if (note && !seen) timers.push(setTimeout(function () { note.hidden = true; }, lead - 200));
     tl.events.forEach(function (ev) {
@@ -175,7 +202,8 @@
     var t = document.getElementById("toast");
     if (!t) return;
     t.textContent = msg; t.classList.add("show");
-    setTimeout(function () { t.classList.remove("show"); }, 2200);
+    clearTimeout(toast.timer);
+    toast.timer = setTimeout(function () { t.classList.remove("show"); }, 2200);
   }
 
   /* ---------- Translator widget ---------- */
@@ -212,7 +240,12 @@
       }
       lock = false;
       grow();
+      var bad = from === "text" ? unknownChars(textEl.value) : [];
+      if (!note) { note = document.createElement("p"); note.className = "t-note small"; note.setAttribute("role", "status"); morseEl.parentNode.appendChild(note); }
+      note.textContent = bad.length ? (L.noCode || "No Morse code for: {c}").replace("{c}", bad.slice(0, 12).join(" ")) : "";
+      note.hidden = !bad.length;
     }
+    var note = null;
     textEl.addEventListener("input", function (e) { sync("text", e.inputType === "insertFromPaste" || e.inputType === "insertFromDrop"); });
     morseEl.addEventListener("input", function () { sync("morse"); });
     function wpm() { return +wpmEl.value || 15; }
@@ -224,6 +257,7 @@
       stopAll();
       var m = morseEl.value.trim();
       if (!m) { toast(L.empty || "Type something first"); return; }
+      if (tooLong(m, Math.min(wpm(), btn.getAttribute("data-act") === "light" ? 7 : 99))) return;
       btn.setAttribute("data-playing", "");
       var d = fn(m);
       timers.push(setTimeout(function () { btn.removeAttribute("data-playing"); }, d));
@@ -240,11 +274,15 @@
     root.querySelector("[data-act=stop]").addEventListener("click", stopAll);
     root.querySelector("[data-act=copy]").addEventListener("click", function () {
       if (!morseEl.value.trim()) { toast(L.empty || "Type something first"); return; }
-      navigator.clipboard.writeText(ascii(morseEl.value)).then(function () { toast(L.copied || "Copied"); }, copyFail);
+      copyText(ascii(morseEl.value), L.copied || "Copied");
+      var tip = root.parentNode.querySelector(".kb-tip"), seenTip = true;
+      try { seenTip = localStorage.getItem("ml-kbtip") === "1"; localStorage.setItem("ml-kbtip", "1"); } catch (e) {}
+      if (tip && !seenTip && !/Android/i.test(navigator.userAgent)) tip.hidden = false;
     });
     root.querySelector("[data-act=wav]").addEventListener("click", function () {
       var m = morseEl.value.trim();
       if (!m) { toast(L.empty || "Type something first"); return; }
+      if (tooLong(m, wpm())) return;
       var a = document.createElement("a");
       a.href = URL.createObjectURL(wavBlob(m, wpm(), freq()));
       a.download = "morse.wav"; document.body.appendChild(a); a.click(); a.remove();
@@ -252,10 +290,11 @@
     root.querySelector("[data-act=share]").addEventListener("click", function () {
       var t = textEl.value.trim();
       if (!t) { toast(L.empty || "Type something first"); return; }
-      var url = location.origin + location.pathname + "#m=" + encodeShare(t);
+      var base = document.body.getAttribute("data-home") || (location.origin + location.pathname);   /* embedded copies link to the real page */
+      var url = base + "#m=" + encodeShare(t);
       var msg = (L.shareText || "Can you decode this Morse message?") + "\n" + toMorse(t) + "\n";
       if (navigator.share) navigator.share({ title: "Morse", text: msg, url: url }).catch(function () {});
-      else navigator.clipboard.writeText(msg + url).then(function () { toast(L.linkCopied || "Link copied"); }, copyFail);
+      else copyText(msg + url, L.linkCopied || "Link copied");
     });
     root.querySelectorAll("[data-key]").forEach(function (k) {
       k.addEventListener("click", function () {
@@ -299,7 +338,7 @@
     var L = window.ML_I18N || {};
     var input = root.querySelector("#n-input"), out = root.querySelector("#n-out"), line = root.querySelector("#n-line");
     function letters() {
-      return Array.from(input.value.toUpperCase().replace(/ẞ/g, "ß")).filter(function (c) { return c === " " || CODE[c] || FOLD[c]; });
+      return Array.from(up(input.value)).filter(function (c) { return c === " " || CODE[c] || (FOLD[c] && FOLD[c].length === 1); });
     }
     function code(c) { return CODE[c] || CODE[FOLD[c]] || ""; }
     function render() {
@@ -325,7 +364,7 @@
     });
     root.querySelector("[data-act=n-copy]").addEventListener("click", function () {
       var m = toMorse(input.value); if (!m) { toast(L.empty || "Type something first"); return; }
-      navigator.clipboard.writeText(m).then(function () { toast(L.copied || "Copied"); }, copyFail);
+      copyText(m, L.copied || "Copied");
     });
     root.querySelector("[data-act=n-png]").addEventListener("click", function () {
       var ls = letters().filter(function (c, i, a) { return c !== " " || (i && a[i - 1] !== " "); });
@@ -358,7 +397,7 @@
         });
       });
       g.fillStyle = "rgba(255,201,107,.55)"; g.font = "600 22px -apple-system,Segoe UI,Roboto,Arial,sans-serif"; g.textAlign = "center";
-      g.fillText("Morse Lux", w / 2, h - 36);
+      g.fillText("morselux.com", w / 2, h - 36);
       cv.toBlob(function (blob) {
         var a = document.createElement("a"); a.href = URL.createObjectURL(blob);
         var fname = input.value.trim().replace(/[äÄ]/g, "ae").replace(/[öÖ]/g, "oe").replace(/[üÜ]/g, "ue").replace(/ß/g, "ss")
@@ -373,6 +412,16 @@
   /* ---------- Play buttons in tables (data-morse) ---------- */
   function initPlayButtons() {
     document.addEventListener("click", function (e) {
+      var lb = e.target.closest("[data-light]");
+      if (lb) { stopAll(); playLight(lb.getAttribute("data-light"), lb.hasAttribute("data-full") ? 6 : 7, lb.hasAttribute("data-full")); return; }
+      var sb = e.target.closest("[data-secret]");
+      if (sb) {                                                   /* share a word or phrase as a secret message (opens in the translator) */
+        var txt = sb.getAttribute("data-secret"), url = new URL(sb.getAttribute("data-home") || "/", location.href).href + "#m=" + encodeShare(txt);
+        var msg = (L.shareText || "Can you decode this Morse message?") + "\n" + toMorse(txt) + "\n";
+        if (navigator.share) navigator.share({ title: "Morse", text: msg, url: url }).catch(function () {});
+        else copyText(msg + url, L.linkCopied || "Link copied");
+        return;
+      }
       var b = e.target.closest("[data-morse]");
       if (!b) return;
       stopAll();
@@ -425,7 +474,14 @@
     try { window.scrollTo({ top: 0, left: 0, behavior: "instant" }); } catch (e) { window.scrollTo(0, 0); }
     try { document.body.scrollIntoView({ block: "start", behavior: "instant" }); } catch (e) {}
   }
+  var navBack = false;
+  try { var ne = performance.getEntriesByType("navigation")[0]; navBack = !!ne && ne.type === "back_forward"; } catch (e) {}
+  window.addEventListener("pagehide", function () { try { sessionStorage.setItem("ml-y:" + location.pathname, String(window.scrollY)); } catch (e) {} });
   function toTop() {
+    if (navBack) {                                                /* back button: return to where the reader was */
+      var y = 0; try { y = +sessionStorage.getItem("ml-y:" + location.pathname) || 0; } catch (e) {}
+      if (y) { setTimeout(function () { window.scrollTo(0, y); }, 0); return; }
+    }
     if (location.hash && !/^#m=/.test(location.hash)) return;
     if (/^#m=/.test(location.hash)) return; /* secret links scroll to the message themselves */
     jumpTop();
@@ -445,6 +501,7 @@
       if (dest.pathname === location.pathname && dest.hash) return;
       e.preventDefault();
       document.documentElement.classList.add("leaving"); /* hide the old page at once */
+      try { sessionStorage.setItem("ml-y:" + location.pathname, String(window.scrollY)); } catch (e2) {}
       jumpTop();
       location.href = dest.href;
     });
@@ -466,6 +523,30 @@
     nav.addEventListener("scroll", edges, { passive: true });
     window.addEventListener("resize", edges);
     edges();
+  }
+
+  /* language menu closes on a tap outside or Escape; the alphabet on the home page is open on wide screens;
+     dots under the keyboard pictures show which one is in view */
+  function initMenus() {
+    var lm = document.querySelector(".langmenu");
+    if (lm) {
+      document.addEventListener("click", function (e) { if (lm.open && !lm.contains(e.target)) lm.open = false; });
+      document.addEventListener("keydown", function (e) { if (e.key === "Escape") lm.open = false; });
+    }
+    if (window.innerWidth >= 800) document.querySelectorAll("details.fold").forEach(function (d) { d.open = true; });
+    var ks = document.querySelector(".kbshots");
+    if (ks) {
+      var figs = ks.querySelectorAll("figure"), dots = document.createElement("div");
+      dots.className = "kbdots"; dots.setAttribute("aria-hidden", "true");
+      figs.forEach(function () { dots.appendChild(document.createElement("i")); });
+      ks.parentNode.insertBefore(dots, ks.nextSibling);
+      var upd = function () {
+        var mid = ks.scrollLeft + ks.clientWidth / 2, best = 0, bd = 1e9;
+        figs.forEach(function (f, i) { var d = Math.abs(f.offsetLeft - ks.offsetLeft + f.offsetWidth / 2 - mid); if (d < bd) { bd = d; best = i; } });
+        dots.querySelectorAll("i").forEach(function (el, i) { el.classList.toggle("on", i === best); });
+      };
+      ks.addEventListener("scroll", upd, { passive: true }); upd();
+    }
   }
 
   /* Keyboard demo: how the Morse Lux keyboard types (dot, dash, letter gap, space, delete) */
@@ -509,7 +590,7 @@
     var start = Date.UTC(2026, 10, 1), now = new Date();
     var day = Math.floor((Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) - start) / 864e5), no = day + 1;
     var lang = document.documentElement.lang || "en", level = "medium";
-    try { level = localStorage.getItem("ml-daily-level") || "medium"; } catch (e) {}
+    try { level = localStorage.getItem("ml-daily-level:" + lang) || "medium"; } catch (e) {}
     if (!LEVELS[level]) level = "medium";
     var input = box.querySelector("input"), grid = box.querySelector("[data-grid]"), msg = box.querySelector("[data-msg]");
     var endBox = box.querySelector("[data-end]"), codeEl = box.querySelector("[data-code]"), hintBtn = box.querySelector("[data-act=d-hint]");
@@ -522,11 +603,18 @@
     }
     function pick(order, d) { return order[((d % order.length) + order.length) % order.length].toUpperCase(); }
     function save() { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} }
-    function marks(g) { return answer.split("").map(function (c, i) { return g[i] === c ? 1 : (answer.indexOf(g[i]) >= 0 ? 2 : 0); }); }
+    /* like Wordle: first the right letters in the right place (1), then right letters in the wrong place (2),
+       but only as often as the letter is still left in the word */
+    function marks(g) {
+      var left = {}, m = [], i;
+      for (i = 0; i < answer.length; i++) { if (g[i] === answer[i]) m[i] = 1; else { m[i] = 0; left[answer[i]] = (left[answer[i]] || 0) + 1; } }
+      for (i = 0; i < answer.length; i++) { if (!m[i] && left[g[i]]) { m[i] = 2; left[g[i]]--; } }
+      return m;
+    }
 
     function setup(lv) {
       level = lv; cfg = LEVELS[lv];
-      try { localStorage.setItem("ml-daily-level", lv); } catch (e) {}
+      try { localStorage.setItem("ml-daily-level:" + lang, lv); } catch (e) {}
       box.querySelectorAll("[data-level]").forEach(function (b) { b.setAttribute("aria-pressed", b.getAttribute("data-level") === lv ? "true" : "false"); });
       var order = orderFor(lv);
       if (!order.length) return;
@@ -543,7 +631,7 @@
       if (yd) yd.textContent = day > 0 ? (D.yesterday || "Yesterday's word: {w}").replace("{w}", pick(order, day - 1)) : "";
       hintBtn.hidden = !cfg.hint;
       input.maxLength = answer.length; input.value = ""; msg.textContent = "";
-      hintLabel();
+      confirmReveal = false; hintLabel();
       if (st.hints && !st.done) msg.textContent = (D.hintText || "First letter: {c}").replace("{c}", answer[0]);
       render();
     }
@@ -579,7 +667,8 @@
       b.addEventListener("click", function () { stopAll(); setup(b.getAttribute("data-level")); });
     });
     box.querySelector("[data-act=d-play]").addEventListener("click", function () { stopAll(); playSound(code, cfg.wpm, 620); });
-    function hintLabel() { hintBtn.textContent = st.hints ? "👀 " + (D.reveal || "Show answer") : "💡 " + (D.hint || "Hint"); }
+    var confirmReveal = false, confirmTimer = null;
+    function hintLabel() { hintBtn.textContent = confirmReveal ? "⚠️ " + (D.revealSure || "Really show it? Your streak ends") : st.hints ? "👀 " + (D.reveal || "Show answer") : "💡 " + (D.hint || "Hint"); }
     /* 1st press: first letter · 2nd press: the answer (counts as not solved) */
     hintBtn.addEventListener("click", function () {
       if (st.done) return;
@@ -588,6 +677,12 @@
         msg.textContent = (D.hintText || "First letter: {c}").replace("{c}", answer[0]);
         return;
       }
+      if (!confirmReveal) {                                       /* ask once more, so nobody loses a streak by accident */
+        confirmReveal = true; hintLabel();
+        clearTimeout(confirmTimer); confirmTimer = setTimeout(function () { confirmReveal = false; hintLabel(); }, 5000);
+        return;
+      }
+      clearTimeout(confirmTimer); confirmReveal = false;
       st.hints = 2; st.revealed = true; st.done = true;
       var s = st.stats; s.played++; s.streak = 0;
       msg.textContent = ""; save(); render();
@@ -609,10 +704,15 @@
     box.querySelector("[data-act=d-share]").addEventListener("click", function () {
       var txt = shareText();
       if (navigator.share) { navigator.share({ text: txt }).catch(function () {}); return; }
-      if (navigator.clipboard) navigator.clipboard.writeText(txt).then(function () { toast(D.copied || "Result copied – paste it anywhere"); }, copyFail);
-      else copyFail();
+      copyText(txt, D.copied || "Result copied – paste it anywhere");
     });
     setup(level);
+    /* the countdown runs; at midnight the new puzzle appears */
+    setInterval(function () {
+      var n = new Date(), d2 = Math.floor((Date.UTC(n.getFullYear(), n.getMonth(), n.getDate()) - start) / 864e5);
+      if (d2 !== day) { day = d2; no = day + 1; setup(level); }
+      else if (st && st.done) tick();
+    }, 20000);
   }
 
   /* offline support (works after the first visit); not inside embedded copies on other websites */
@@ -627,6 +727,7 @@
     var kb = document.getElementById("kbdemo");
     if (kb) initKbDemo(kb);
     initNav();
+    initMenus();
     initTopLinks();
     var tr = document.getElementById("translator");
     if (tr) initTranslator(tr);
@@ -641,6 +742,6 @@
   });
 
   window.MorseLux = { toMorse: toMorse, fromMorse: fromMorse, CODE: CODE, DECODE: DECODE, shapes: shapes, display: display,
-    playSound: playSound, stopAll: stopAll, toast: toast, audio: audio, timeline: timeline,
+    playSound: playSound, stopAll: stopAll, toast: toast, copyText: copyText, audio: audio, timeline: timeline,
     later: function (fn, ms) { timers.push(setTimeout(fn, ms)); } };
 })();
