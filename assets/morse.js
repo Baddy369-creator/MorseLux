@@ -414,6 +414,8 @@
     document.addEventListener("click", function (e) {
       var lb = e.target.closest("[data-light]");
       if (lb) { stopAll(); playLight(lb.getAttribute("data-light"), lb.hasAttribute("data-full") ? 6 : 7, lb.hasAttribute("data-full")); return; }
+      var cb = e.target.closest("[data-copy]");
+      if (cb) { copyText(cb.getAttribute("data-copy"), L.copied || "Morse code copied"); return; }
       var sb = e.target.closest("[data-secret]");
       if (sb) {                                                   /* share a word or phrase as a secret message (opens in the translator) */
         var txt = sb.getAttribute("data-secret"), url = new URL(sb.getAttribute("data-home") || "/", location.href).href + "#m=" + encodeShare(txt);
