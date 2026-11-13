@@ -42,7 +42,8 @@
   }
 
   /* How Morse is shown: round dot and dash on one line, like in the app. Copies stay as .- */
-  function display(m) { return m.replace(/[.·∙⋅*]/g, "•").replace(/[-–—―_]/g, "−"); }
+  function display(m) { return m.replace(/[.·∙⋅*]/g, "•").replace(/[−–—―_]/g, "-"); }
+  function appStyle(m) { return normalizeMorse(m).replace(/\./g, "•"); }   /* like the app: • for dots, - for dashes */
   function ascii(m) { return normalizeMorse(m).replace(/•/g, "."); }
   function shapes(m) {
     var items = [];
@@ -274,7 +275,7 @@
     root.querySelector("[data-act=stop]").addEventListener("click", stopAll);
     root.querySelector("[data-act=copy]").addEventListener("click", function () {
       if (!morseEl.value.trim()) { toast(L.empty || "Type something first"); return; }
-      copyText(ascii(morseEl.value), L.copied || "Copied");
+      copyText(appStyle(morseEl.value), L.copied || "Copied");
       var tip = root.parentNode.querySelector(".kb-tip"), seenTip = true;
       try { seenTip = localStorage.getItem("ml-kbtip") === "1"; localStorage.setItem("ml-kbtip", "1"); } catch (e) {}
       if (tip && !seenTip && !/Android/i.test(navigator.userAgent)) tip.hidden = false;
@@ -292,7 +293,7 @@
       if (!t) { toast(L.empty || "Type something first"); return; }
       var base = document.body.getAttribute("data-home") || (location.origin + location.pathname);   /* embedded copies link to the real page */
       var url = base + "#m=" + encodeShare(t);
-      var msg = (L.shareText || "Can you decode this Morse message?") + "\n" + toMorse(t) + "\n";
+      var msg = (L.shareText || "Can you decode this Morse message?") + "\n" + appStyle(toMorse(t)) + "\n";
       if (navigator.share) navigator.share({ title: "Morse", text: msg, url: url }).catch(function () {});
       else copyText(msg + url, L.linkCopied || "Link copied");
     });
@@ -364,7 +365,7 @@
     });
     root.querySelector("[data-act=n-copy]").addEventListener("click", function () {
       var m = toMorse(input.value); if (!m) { toast(L.empty || "Type something first"); return; }
-      copyText(m, L.copied || "Copied");
+      copyText(appStyle(m), L.copied || "Copied");
     });
     root.querySelector("[data-act=n-png]").addEventListener("click", function () {
       var ls = letters().filter(function (c, i, a) { return c !== " " || (i && a[i - 1] !== " "); });
@@ -415,11 +416,11 @@
       var lb = e.target.closest("[data-light]");
       if (lb) { stopAll(); playLight(lb.getAttribute("data-light"), lb.hasAttribute("data-full") ? 6 : 7, lb.hasAttribute("data-full")); return; }
       var cb = e.target.closest("[data-copy]");
-      if (cb) { copyText(cb.getAttribute("data-copy"), L.copied || "Morse code copied"); return; }
+      if (cb) { copyText(appStyle(cb.getAttribute("data-copy")), L.copied || "Morse code copied"); return; }
       var sb = e.target.closest("[data-secret]");
       if (sb) {                                                   /* share a word or phrase as a secret message (opens in the translator) */
         var txt = sb.getAttribute("data-secret"), url = new URL(sb.getAttribute("data-home") || "/", location.href).href + "#m=" + encodeShare(txt);
-        var msg = (L.shareText || "Can you decode this Morse message?") + "\n" + toMorse(txt) + "\n";
+        var msg = (L.shareText || "Can you decode this Morse message?") + "\n" + appStyle(toMorse(txt)) + "\n";
         if (navigator.share) navigator.share({ title: "Morse", text: msg, url: url }).catch(function () {});
         else copyText(msg + url, L.linkCopied || "Link copied");
         return;

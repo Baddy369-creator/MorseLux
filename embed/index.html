@@ -1,14 +1,14 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Morse code translator · MorseLux</title><meta name="robots" content="noindex,follow">
 <link rel="stylesheet" href="../assets/style.css?v=4479b8be"><script>window.ML_I18N={"empty": "Type something first", "copied": "Morse code copied", "linkCopied": "Link copied — send it to a friend", "shareText": "Can you decode this Morse code message?", "noVibrate": "Vibration isn't supported in this browser (works on Android in Chrome)", "copyFail": "Copying is not possible here", "noVibrateIOS": "Vibration doesn't work in the iPhone browser – it does in the MorseLux app (free).", "android": "📱 The MorseLux app is iPhone-only. Every tool on this website works free on your Android phone.", "androidKb": "📱 The Morse keyboard is iPhone-only. On Android, Gboard has a built-in Morse layout – or write in the free Morse translator and copy the code into any chat.", "androidShort": "📱 Available for iPhone only", "tooLong": "Too long to play – please shorten the text (5 minutes at most)", "noCode": "No Morse code for: {c}", "lightOn": "Light signal running – tap or press Escape to stop"};</script>
-<script src="../assets/morse.js?v=29662d44" defer></script><style>body{background:transparent;padding:0;margin:0}.embed-foot{text-align:center;font-size:13px;margin:8px 0 0}</style></head>
+<script src="../assets/morse.js?v=a858b060" defer></script><style>body{background:transparent;padding:0;margin:0}.embed-foot{text-align:center;font-size:13px;margin:8px 0 0}</style></head>
 <body class="embedded" data-home="https://morselux.com/"><div id="secret" hidden><p class="eyebrow">Secret message</p><h2 style="margin-top:6px">Someone sent you a message in Morse code. Can you decode it?</h2>
 <p class="code" data-secret-morse></p><p class="controls"><button class="btn" type="button" data-act="secret-play">🔊 Play sound</button><button class="btn primary" type="button" data-act="reveal">Reveal the answer</button></p>
 <div class="answer"><p>It says: <span data-secret-answer></span></p><p class="muted">Write your reply below and send it back as a secret message.</p></div></div>
 <section id="translator" class="card" aria-label="Morse code translator">
 <div class="tr-grid">
  <div><label for="t-text">Text</label><textarea id="t-text" placeholder="Type or paste text… (Morse pasted here is decoded automatically)" autocomplete="off" spellcheck="false"></textarea></div>
- <div><label for="t-morse">Morse code</label><textarea id="t-morse" placeholder="·– or .- — letters separated by spaces, words by /" autocomplete="off" spellcheck="false"></textarea>
+ <div><label for="t-morse">Morse code</label><textarea id="t-morse" placeholder="•- or .- — letters separated by spaces, words by /" autocomplete="off" spellcheck="false"></textarea>
   <div class="keypad noprint"><button class="btn" type="button" data-key="." aria-label="dot"><span class="m"><i class="md"></i></span></button><button class="btn" type="button" data-key="-" aria-label="dash"><span class="m"><i class="mh"></i></span></button><button class="btn" type="button" data-key=" ">space</button><button class="btn" type="button" data-key=" / ">/</button><button class="btn" type="button" data-key="back" aria-label="Delete">⌫</button></div>
  </div>
 </div>
