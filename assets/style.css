@@ -452,3 +452,5 @@ details.fold{background:none;border:0;padding:0}
 /* copy buttons next to play buttons (13 Nov 2026) */
 .btns{display:flex;gap:8px;justify-content:flex-end;white-space:nowrap}
 td.btns{display:table-cell}td.btns .btn+.btn{margin-left:8px}
+.ico-copy{display:inline-block;vertical-align:-3px}
+.btn .ico-copy+*{margin-left:0}
